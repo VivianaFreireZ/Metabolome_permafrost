@@ -1,0 +1,188 @@
+---
+title: "Metabolome paper - Calculate microbiome beta NTI"
+Author: "Hannah Holland Moritz"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-03-26"
+editor_options:
+  chunk_output_type: console
+---
+
+#' ## Calculate betaNTI
+#' This step calcluates the betaNTI or phylogenetic turnover among samples
+#' It requires a phylogenetic tree and a species-by-sample table
+#' This step takes a long time and would be much better run on a super computer
+#+ include=FALSE
+
+# Loading libraries
+```{r}
+# Load DADA2 and required packages
+library(tidyverse); packageVersion("tidyverse") # for dataframe processing
+library(picante); packageVersion("picante") # handles tree manipulations
+library(vegan); packageVersion("vegan") # for ecological applications
+library(here)
+library(doMPI)
+
+```
+
+# Load required data
+```{r}
+source(here("setup.R")) 
+```
+
+## Set up input and output directories
+#+ directory creation, eval = FALSE
+# setting up names of file paths to stay organized
+
+```{r}
+outputs.fp <- here("Assembly-analysis", "outputs")
+figures.fp <- here("Assembly-analysis", "figures")
+
+if (!dir.exists(outputs.fp)) {dir.create(outputs.fp)}
+if (!dir.exists(figures.fp)) {dir.create(figures.fp)}
+
+```
+
+#' First we'll set up user settings and command line arguments: 
+#' Users should modify these settings for their own environment.  
+#'  - Set the number of replicate randomizations for the BetaMNTD calculations `beta.reps`
+#'  - Set the relative abundance flag if your OTU table is not integers but real numbers instead
+#'  - If you're working in an environment with parallel computing set `paral <- TRUE`
+# User settings and command line arguments
+
+```{r}
+beta.reps <- 1000; # number of randomizations for beta MNTD
+
+rel_abund <- TRUE # is the otu table in relative abundances such as read mappings?
+
+paral <- TRUE
+
+# Tell the user their settings:
+writeLines(paste("User settings are as follows: \n",
+                 "Parallel:", paral, "\n",
+                 "Replicates:", beta.reps, "\n",
+                 "Relative Abundances:", rel_abund))
+# If parallel is true, detect available cores
+
+if(paral==T) {
+  library(Rmpi)  # R implementation of MPI interface
+  library(doMPI)
+  n.cores <- max(1, mpi.universe.size()-1) # set n.cores to 1 or mpi allocation size, whichever is bigger
+  #print(n.cores)
+  print(paste(n.cores, "worker nodes are available."))
+  
+  if (n.cores > 24) {
+    # we are using more than 1 node, so really run in parallel mode
+    cl <- startMPIcluster(count = n.cores)
+    registerDoMPI(cl) # tell foreach about the cluster
+    print(paste("Running in parallel mode on",n.cores,"worker nodes."))
+    
+  } else if (n.cores > 1) {
+    library(doParallel)
+    cl <- parallel::makeForkCluster(n.cores)
+    registerDoParallel(cl)
+    print(paste("Running in parallel mode without mpi on", n.cores, "worker nodes."))
+  } else {
+    registerDoSEQ() # tells foreach to use sequential mode
+    paral <- FALSE
+    print(paste("Only", n.cores,
+                "available. Not enough to run in parallel, running in sequential mode."))
+  }
+} else {
+  registerDoSEQ()
+  print("Running in sequential mode.")
+} 
+```
+
+
+## Read in data 
+
+```{r}
+
+writeLines("reading in input data")
+input <- input_ra
+
+# Read in tree
+magtree <- input_ra$tree
+
+# Verify the everything is matching
+match.phylo.otu <- match.phylo.data(magtree, input_ra$otu_table[-1])
+
+```
+
+#' ## Step 1: First we calculate the empirical betaMNTD
+#' This is the observed betaMNTD which we will compare to our null distribution that we will generate below
+
+```{r}
+
+beta.mntd.weighted <- as.matrix(comdistnt(t(match.phylo.otu$data),
+                                          cophenetic(match.phylo.otu$phy),
+                                          abundance.weighted=T))
+dim(beta.mntd.weighted)
+
+```
+
+#' ## Step 2: Calculate null expectation (randomized) betaMNTD
+#' This is our null distribution. Calculating this will take a while - best to run on server
+```{r}
+null_bMNTD <- NULL # make a null object to hold list of results
+null_bMNTD <- foreach (i=1:beta.reps, .packages = c("picante")) %dopar% {
+  as.matrix(comdistnt(t(match.phylo.otu$data),
+                      taxaShuffle(cophenetic(match.phylo.otu$phy)),
+                      abundance.weighted=T,
+                      exclude.conspecifics = F))
+  } # end of parallel computation
+```
+
+# reformat data output from foreach
+# Unlisting the list of null beta.reps; This creates an 3d array
+# of size: # samples x # samples x # beta.reps
+
+```{r}
+rand.weighted.bMNTD.comp <- array(as.numeric(unlist(null_bMNTD)), 
+                                  dim=c(ncol(match.phylo.otu$data),
+                                        ncol(match.phylo.otu$data), 
+                                        beta.reps))
+
+dim(rand.weighted.bMNTD.comp) # should be # samples x # samples x # beta.reps
+```
+
+#' ## Step 3: Now calculate betaNTI by normalizing observed against the null expectation
+#' Reminder: 
+#' -2 < bNTI < 2 indicates stochastic process which can be further refined using values from RCbray in next step.
+#' bNTI < -2 indicates homogeneous selection
+#' bNTI > 2 indicates heterogeneous selection
+```{r}
+# Save time by setting up matrix first
+weighted.bNTI <- matrix(c(NA),nrow=ncol(match.phylo.otu$data),ncol=ncol(match.phylo.otu$data));
+
+dim(weighted.bNTI); # should be # samples x # samples
+
+for (columns in 1:(ncol(match.phylo.otu$data)-1)) {
+  for (rows in (columns+1):ncol(match.phylo.otu$data)) { # columns + 1 so samples are not compared to themselves
+    
+    # Pull out the randomized betaMNTD values
+    rand.vals <- rand.weighted.bMNTD.comp[rows,columns,]; # length of this object = beta.reps
+    # Normalize the observed against the randomized values
+    weighted.bNTI[rows,columns] <- (beta.mntd.weighted[rows,columns] - mean(rand.vals)) / sd(rand.vals); # normalize
+    rm("rand.vals");
+    
+  };
+};
+
+# Rename columns and rows to get a samplexsample table
+rownames(weighted.bNTI) = colnames(match.phylo.otu$data);
+colnames(weighted.bNTI) = colnames(match.phylo.otu$data)
+# weighted.bNTI;
+```
+
+## Save Data
+
+```{r}
+# BetaNTI Matrix
+write.csv(weighted.bNTI,
+          paste0(outputs.fp, "/weighted_BNTI_bacteria.csv"),
+          quote=FALSE)
+```
+

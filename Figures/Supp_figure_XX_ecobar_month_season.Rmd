@@ -1,0 +1,727 @@
+---
+title: "Supplementary Figure 1"
+author: "Viviana Freire Zapata"
+date: "1-11-23"
+output:
+  html_document:
+    df_print: paged
+editor_options: 
+  chunk_output_type: console
+---
+
+# Loading libraries
+```{r}
+require(reshape2)
+require(ggplot2)
+require(vegan)
+library(dbplyr)
+library(ggsci)
+library(rstatix)
+library(ggpubr)
+library(ggrepel)
+library(grid)
+library(gridExtra)
+library(RColorBrewer)
+library(SYNCSA)
+#library(Hmisc)
+library(ggnewscale)
+library(analogue)
+library(picante)
+library(phyloseq)
+library(adephylo)
+library(ggbeeswarm)
+library(tidyverse)
+library(patchwork)
+```
+
+# Setting working directory
+
+```{r}
+setwd("/home/u1/vfreirezapata/ondemand/data/Meta-Metabolome_Ecology/Paper_figures_2022/")
+```
+
+# Plots colors
+```{r}
+list_colors <- c('Palsa' = '#703C1B', 'Bog' = '#058000','Fen' = '#0001FF')
+```
+
+# Metabolites
+## Loading BNTI matrix and data preprocessing - 
+
+```{r}
+# Load in bNTI
+weig <- read_csv("input/Peat_so/Abisko_TWCD_bNTI_999_so_5_2_21.csv") %>% 
+  column_to_rownames(var = "...1")
+
+# Load in RCBC
+weig.rcbc <- read_csv("input/Peat_so/Abisko_TWCD_RCBC_9999_so_5-3-21.csv")%>% 
+  column_to_rownames(var = "...1")
+
+## Data Preprocessing
+
+# Matching the order of RCBC to bNTI results
+
+weig.rcbc = weig.rcbc[row.names(weig), colnames(weig), drop = F]
+
+# Setting the RCBC diagonals to NA
+
+diag(weig.rcbc) = NA
+
+# Reflecting null matrices
+
+weig[upper.tri(weig)] = t(weig)[upper.tri(weig)]
+
+# Removing significant bNTI results from the RCBC results
+
+weig.rcbc[abs(weig) > 2] = NA
+
+```
+
+## Preprocessing Data for plotting - Metabolites
+
+```{r}
+
+# Melting data
+weig = melt(as.matrix(weig)); weig$Type = "All"
+
+weig.rcbc = melt(as.matrix(weig.rcbc)); weig.rcbc$Type = "All"
+
+#Combine data and remove null values
+
+bnti_data <- rbind(weig) %>% 
+  filter(!is.na(value))
+
+rcbc_data <- rbind(weig.rcbc) %>% 
+  filter(!is.na(value))
+
+# Adding Habitat Information
+bnti_data$Habitat = "Bog"
+bnti_data$Habitat[grep("E", bnti_data$Var2)] = "Fen"
+bnti_data$Habitat[grep("P", bnti_data$Var2)] = "Palsa"
+
+bnti_data$Habitat <- factor(bnti_data$Habitat, levels = c("Palsa", "Bog", "Fen"))
+
+
+rcbc_data$Habitat = "Bog"
+rcbc_data$Habitat[grep("E", rcbc_data$Var2)] = "Fen"
+rcbc_data$Habitat[grep("P", rcbc_data$Var2)] = "Palsa"
+
+rcbc_data$Habitat <- factor(rcbc_data$Habitat, levels = c("Palsa", "Bog", "Fen"))
+
+```
+
+## Determining ecological processes fractionation
+
+```{r}
+# Determining ecological processes fractionation
+
+bnti_data_within <- bnti_data %>% 
+  filter(
+    (str_detect(Var1, '_P_') & str_detect(Var2, '_P_')) |
+      (str_detect(Var1, '_E_') & str_detect(Var2, '_E_')) |
+      (str_detect(Var1, '[a-z]_S_') & str_detect(Var2, '[a-z]_S_'))
+  ) %>% 
+  mutate(Type = str_replace(Type, 'All', 'Bulk'))
+
+rcbc_data_within <- rcbc_data %>% 
+  filter(
+    (str_detect(Var1, '_P_') & str_detect(Var2, '_P_')) |
+      (str_detect(Var1, '_E_') & str_detect(Var2, '_E_')) |
+      (str_detect(Var1, '[a-z]_S_') & str_detect(Var2, '[a-z]_S_'))
+  ) %>% 
+  mutate(Type = str_replace(Type, 'All', 'Bulk'))
+```
+
+### Palsa
+
+```{r}
+#PALSA only
+
+bnti_data_palsa = bnti_data_within[-c(grep("[a-z]_S_", bnti_data_within$Var1), 
+                                      grep("[a-z]_S_", bnti_data_within$Var2),
+                                      grep("E", bnti_data_within$Var1), 
+                                      grep("E", bnti_data_within$Var2)),]
+
+rcbc_data_palsa = rcbc_data_within[-c(grep("[a-z]_S_", rcbc_data_within$Var1), 
+                                      grep("[a-z]_S_", rcbc_data_within$Var2),
+                                      grep("E", rcbc_data_within$Var1), 
+                                      grep("E", rcbc_data_within$Var2)),]
+
+### Filtering only bulk data
+
+bnti_data_palsa <- bnti_data_palsa %>% 
+  filter(Type == "Bulk") %>% 
+  rename(BNTI = value)
+
+rcbc_data_palsa <- rcbc_data_palsa %>% 
+  filter(Type == "Bulk") %>% 
+  rename(RCBC = value)
+
+## Joining BNTI and RCBC datasets
+
+palsa_full <- full_join(bnti_data_palsa, rcbc_data_palsa)
+
+## Determining ecological processes fractionation
+
+palsa_eco <- palsa_full %>% 
+  mutate(ecological = case_when(BNTI <= -2 ~ "Homogeneous selection",
+                                BNTI >= 2 ~ "Variable selection",
+                                abs(BNTI) <2 & RCBC <= -0.95 ~ "Homogenizing dispersal",
+                                abs(BNTI) <2 & RCBC >= 0.95 ~ "Dispersal limitation",
+                                abs(BNTI) <2 & abs(RCBC)< 0.95 ~ "Undominated"),
+         month = case_when(str_detect(Var1, "June") & str_detect(Var2, "June") ~ "June",
+                           str_detect(Var1, "June") & str_detect(Var2, "July") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "June") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "July") ~ "July",
+                           str_detect(Var1, "July") & str_detect(Var2, "Aug") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "July") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "Aug") ~ "Aug"),
+         depth = case_when(str_detect(Var1, "D") & str_detect(Var2, "D") ~ "Deep",
+                           str_detect(Var1, "M") & str_detect(Var2, "M") ~ "Middle",
+                           str_detect(Var1, "S") & str_detect(Var2, "S") ~ "Surface")) %>% 
+  mutate(Habitat = "Palsa")
+
+```
+
+### Bog
+
+```{r}
+
+#BOG only
+
+bnti_data_bog = bnti_data_within[-c(grep("E", bnti_data_within$Var1), 
+                                    grep("E", bnti_data_within$Var2),
+                                    grep("P", bnti_data_within$Var1), 
+                                    grep("P", bnti_data_within$Var2)),]
+
+rcbc_data_bog = rcbc_data_within[-c(grep("E", rcbc_data_within$Var1), 
+                                    grep("E", rcbc_data_within$Var2),
+                                    grep("P", rcbc_data_within$Var1), 
+                                    grep("P", rcbc_data_within$Var2)),]
+
+### Filtering only bulk data
+
+bnti_data_bog <- bnti_data_bog %>% 
+  filter(Type == "Bulk") %>% 
+  rename(BNTI = value)
+
+rcbc_data_bog <- rcbc_data_bog %>% 
+  filter(Type == "Bulk") %>% 
+  rename(RCBC = value)
+
+## Joining BNTI and RCBC datasets
+
+bog_full <- full_join(bnti_data_bog, rcbc_data_bog)
+
+## Determining ecological processes fractionation
+
+bog_eco <- bog_full %>% 
+  mutate(ecological = case_when(BNTI <= -2 ~ "Homogeneous selection",
+                                BNTI >= 2 ~ "Variable selection",
+                                abs(BNTI) <2 & RCBC <= -0.95 ~ "Homogenizing dispersal",
+                                abs(BNTI) <2 & RCBC >= 0.95 ~ "Dispersal limitation",
+                                abs(BNTI) <2 & abs(RCBC)< 0.95 ~ "Undominated"),
+         month = case_when(str_detect(Var1, "June") & str_detect(Var2, "June") ~ "June",
+                           str_detect(Var1, "June") & str_detect(Var2, "July") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "June") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "July") ~ "July",
+                           str_detect(Var1, "July") & str_detect(Var2, "Aug") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "July") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "Aug") ~ "Aug"),
+         depth = case_when(str_detect(Var1, "D") & str_detect(Var2, "D") ~ "Deep",
+                           str_detect(Var1, "M") & str_detect(Var2, "M") ~ "Middle",
+                           str_detect(Var1, "S") & str_detect(Var2, "S") ~ "Surface")) %>%
+  mutate(Habitat = "Bog")
+
+```
+
+### Fen
+
+```{r}
+#FEN only
+
+bnti_data_fen = bnti_data_within[-c(grep("[a-z]_S_", bnti_data_within$Var1), 
+                                    grep("[a-z]_S_", bnti_data_within$Var2),
+                                    grep("P", bnti_data_within$Var1), 
+                                    grep("P", bnti_data_within$Var2)),]
+
+rcbc_data_fen = rcbc_data_within[-c(grep("[a-z]_S_", rcbc_data_within$Var1), 
+                                    grep("[a-z]_S_", rcbc_data_within$Var2),
+                                    grep("P", rcbc_data_within$Var1), 
+                                    grep("P", rcbc_data_within$Var2)),]
+
+### Filtering only bulk data
+
+bnti_data_fen <- bnti_data_fen %>% 
+  filter(Type == "Bulk") %>% 
+  rename(BNTI = value)
+
+rcbc_data_fen <- rcbc_data_fen %>% 
+  filter(Type == "Bulk") %>% 
+  rename(RCBC = value)
+
+## Joining BNTI and RCBC datasets
+
+fen_full <- full_join(bnti_data_fen, rcbc_data_fen)
+
+
+## Determining ecological processes fractionation
+
+fen_eco <- fen_full %>% 
+  mutate(ecological = case_when(BNTI <= -2 ~ "Homogeneous selection",
+                                BNTI >= 2 ~ "Variable selection",
+                                abs(BNTI) <2 & RCBC <= -0.95 ~ "Homogenizing dispersal",
+                                abs(BNTI) <2 & RCBC >= 0.95 ~ "Dispersal limitation",
+                                abs(BNTI) <2 & abs(RCBC)< 0.95 ~ "Undominated"),
+         month = case_when(str_detect(Var1, "June") & str_detect(Var2, "June") ~ "June",
+                           str_detect(Var1, "June") & str_detect(Var2, "July") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "June") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "July") ~ "July",
+                           str_detect(Var1, "July") & str_detect(Var2, "Aug") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "July") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "Aug") ~ "Aug"),
+         depth = case_when(str_detect(Var1, "D") & str_detect(Var2, "D") ~ "Deep",
+                           str_detect(Var1, "M") & str_detect(Var2, "M") ~ "Middle",
+                           str_detect(Var1, "S") & str_detect(Var2, "S") ~ "Surface")) %>% 
+  mutate(Habitat = "Fen")
+
+```
+
+### Joining metabolite data
+
+```{r}
+metabolite_eco <- rbind(palsa_eco, bog_eco, fen_eco) %>% 
+  mutate(Habitat = factor(Habitat, levels = c("Palsa", "Bog", "Fen")),
+         month = factor(month, levels = c("June", "June-July", "July", "July-Aug", "Aug")),
+         depth = factor(depth, levels = c('Surface', 'Middle', 'Deep')),
+         dataset = 'Metabolites')
+```
+
+# Bacteria
+
+## Loading BNTI
+
+```{r}
+## Bacteria BNTI
+
+samples_names <- read_csv("input/microbes/metadata_matched_MAGs_data_11-29-21.csv")
+
+bacteria_bnti <- read_csv("input/microbes/weighted_BNTI_bacteria.csv") %>% 
+  column_to_rownames("...1")
+
+bacteria_bnti <- bacteria_bnti[colnames(bacteria_bnti),] %>% 
+  rename(!!(set_names(samples_names$names_bnti, samples_names$SampleID))) 
+
+rownames(bacteria_bnti) <- colnames(bacteria_bnti)
+
+# Reflecting  matrices
+
+bacteria_r <- bacteria_bnti
+bacteria_r[upper.tri(bacteria_bnti)] <-  t(bacteria_bnti)[upper.tri(bacteria_bnti)]
+
+# Melting data
+bnti_data_bacteria = melt(as.matrix(bacteria_r))
+
+#Combine data and remove null values
+
+bnti_data_bacteria <- bnti_data_bacteria %>% 
+  filter(!is.na(value))
+
+# Adding Habitat Information
+bnti_data_bacteria$Habitat = "Bog"
+bnti_data_bacteria$Habitat[grep("E", bnti_data_bacteria$Var2)] = "Fen"
+bnti_data_bacteria$Habitat[grep("P", bnti_data_bacteria$Var2)] = "Palsa"
+
+bnti_data_bacteria$Habitat <- factor(bnti_data_bacteria$Habitat, levels = c("Palsa", "Bog", "Fen"))
+
+bnti_data_bacteria <- bnti_data_bacteria %>% 
+  mutate(Type = "microbe")
+```
+
+## Loading RCBC
+
+```{r}
+#Loading RCBC matrix
+rcbc_bac <- read_tsv("input/microbes/rcbc_matrix_changed_names.tsv") %>% 
+  column_to_rownames(var = "...1")
+
+## Data Preprocessing
+rcbc_bac <- rcbc_bac[colnames(rcbc_bac),] %>% 
+  rename(!!(set_names(samples_names$names_bnti, samples_names$SampleID)))
+rownames(rcbc_bac) <- colnames(rcbc_bac)
+
+# Reflecting null matrices
+rcbc_r <- rcbc_bac
+rcbc_r[upper.tri(rcbc_bac)] <-  t(rcbc_bac)[upper.tri(rcbc_bac)]
+
+# Removing significant bNTI results from the RCBC results
+rcbc_r[abs(bacteria_r) > 2] = NA
+
+# Melting data
+rcbc_r = melt(as.matrix(rcbc_r))
+
+#Combine data and remove null values
+rcbc_data_bac <- rcbc_r %>% 
+  filter(!is.na(value)) %>% 
+  mutate(Habitat = case_when(str_detect(Var2, 'E') ~ 'Fen',
+                             str_detect(Var2, 'P') ~ 'Palsa',
+                             TRUE ~ 'Bog'),
+         Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen')))
+
+```
+
+## Determining ecological processes fractionation
+
+### Palsa
+
+```{r}
+#PALSA only
+
+bnti_data_palsa = bnti_data_bacteria[-c(grep("[a-z]_S_", bnti_data_bacteria$Var1), 
+                                        grep("[a-z]_S_", bnti_data_bacteria$Var2),
+                                        grep("E", bnti_data_bacteria$Var1), 
+                                        grep("E", bnti_data_bacteria$Var2)),]
+
+rcbc_data_palsa = rcbc_data_bac[-c(grep("[a-z]_S_", rcbc_data_bac$Var1), 
+                                   grep("[a-z]_S_", rcbc_data_bac$Var2),
+                                   grep("E", rcbc_data_bac$Var1),
+                                   grep("E", rcbc_data_bac$Var2)),]
+### Filtering only bulk data
+
+bnti_data_palsa <- bnti_data_palsa %>% 
+  rename(BNTI = value)
+
+rcbc_data_palsa <- rcbc_data_palsa %>% 
+  rename(RCBC = value)
+
+## Joining BNTI and RCBC datasets
+
+palsa_full <- full_join(bnti_data_palsa, rcbc_data_palsa)
+
+## Determining ecological processes fractionation
+
+palsa_eco <- palsa_full %>% 
+  mutate(ecological = case_when(BNTI <= -2 ~ "Homogeneous selection",
+                                BNTI >= 2 ~ "Variable selection",
+                                abs(BNTI) <2 & RCBC <= -0.95 ~ "Homogenizing dispersal",
+                                abs(BNTI) <2 & RCBC >= 0.95 ~ "Dispersal limitation",
+                                abs(BNTI) <2 & abs(RCBC)< 0.95 ~ "Undominated"),
+         month = case_when(str_detect(Var1, "June") & str_detect(Var2, "June") ~ "June",
+                           str_detect(Var1, "June") & str_detect(Var2, "July") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "June") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "July") ~ "July",
+                           str_detect(Var1, "July") & str_detect(Var2, "Aug") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "July") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "Aug") ~ "Aug"),
+         depth = case_when(str_detect(Var1, "D") & str_detect(Var2, "D") ~ "Deep",
+                           str_detect(Var1, "M") & str_detect(Var2, "M") ~ "Middle",
+                           str_detect(Var1, "S") & str_detect(Var2, "S") ~ "Surface")) %>% 
+  mutate(Habitat = "Palsa")
+
+```
+
+### Bog
+
+```{r}
+#BOG only
+
+bnti_data_bog = bnti_data_bacteria[-c(grep("E", bnti_data_bacteria$Var1), 
+                                      grep("E", bnti_data_bacteria$Var2),
+                                      grep("P", bnti_data_bacteria$Var1), 
+                                      grep("P", bnti_data_bacteria$Var2)),]
+
+rcbc_data_bog = rcbc_data_bac[-c(grep("E", rcbc_data_bac$Var1), 
+                                 grep("E", rcbc_data_bac$Var2),
+                                 grep("P", rcbc_data_bac$Var1), 
+                                 grep("P", rcbc_data_bac$Var2)),]
+
+### Filtering only bulk data
+
+bnti_data_bog <- bnti_data_bog %>% 
+  rename(BNTI = value)
+
+rcbc_data_bog <- rcbc_data_bog %>% 
+  rename(RCBC = value)
+
+## Joining BNTI and RCBC datasets
+
+bog_full <- full_join(bnti_data_bog, rcbc_data_bog)
+
+## Determining ecological processes fractionation
+
+bog_eco <- bog_full %>% 
+  mutate(ecological = case_when(BNTI <= -2 ~ "Homogeneous selection",
+                                BNTI >= 2 ~ "Variable selection",
+                                abs(BNTI) <2 & RCBC <= -0.95 ~ "Homogenizing dispersal",
+                                abs(BNTI) <2 & RCBC >= 0.95 ~ "Dispersal limitation",
+                                abs(BNTI) <2 & abs(RCBC)< 0.95 ~ "Undominated"),
+         month = case_when(str_detect(Var1, "June") & str_detect(Var2, "June") ~ "June",
+                           str_detect(Var1, "June") & str_detect(Var2, "July") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "June") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "July") ~ "July",
+                           str_detect(Var1, "July") & str_detect(Var2, "Aug") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "July") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "Aug") ~ "Aug"),
+         depth = case_when(str_detect(Var1, "D") & str_detect(Var2, "D") ~ "Deep",
+                           str_detect(Var1, "M") & str_detect(Var2, "M") ~ "Middle",
+                           str_detect(Var1, "S") & str_detect(Var2, "S") ~ "Surface")) %>% 
+  mutate(Habitat = "Bog")
+
+```
+
+
+```{r}
+#FEN only
+
+bnti_data_fen = bnti_data_bacteria[-c(grep("[a-z]_S_", bnti_data_bacteria$Var1), 
+                                      grep("[a-z]_S_", bnti_data_bacteria$Var2),
+                                      grep("P", bnti_data_bacteria$Var1), 
+                                      grep("P", bnti_data_bacteria$Var2)),]
+
+rcbc_data_fen = rcbc_data_bac[-c(grep("[a-z]_S_", rcbc_data_bac$Var1), 
+                                 grep("[a-z]_S_", rcbc_data_bac$Var2),
+                                 grep("P", rcbc_data_bac$Var1), 
+                                 grep("P", rcbc_data_bac$Var2)),]
+
+
+### Filtering only bulk data
+
+bnti_data_fen <- bnti_data_fen %>% 
+  rename(BNTI = value)
+
+rcbc_data_fen <- rcbc_data_fen %>% 
+  rename(RCBC = value)
+
+## Joining BNTI and RCBC datasets
+
+fen_full <- full_join(bnti_data_fen, rcbc_data_fen)
+
+## Determining ecological processes fractionation
+
+fen_eco <- fen_full %>% 
+  mutate(ecological = case_when(BNTI <= -2 ~ "Homogeneous selection",
+                                BNTI >= 2 ~ "Variable selection",
+                                abs(BNTI) <2 & RCBC <= -0.95 ~ "Homogenizing dispersal",
+                                abs(BNTI) <2 & RCBC >= 0.95 ~ "Dispersal limitation",
+                                abs(BNTI) <2 & abs(RCBC)< 0.95 ~ "Undominated"),
+         month = case_when(str_detect(Var1, "June") & str_detect(Var2, "June") ~ "June",
+                           str_detect(Var1, "June") & str_detect(Var2, "July") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "June") ~ "June-July",
+                           str_detect(Var1, "July") & str_detect(Var2, "July") ~ "July",
+                           str_detect(Var1, "July") & str_detect(Var2, "Aug") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "July") ~ "July-Aug",
+                           str_detect(Var1, "Aug") & str_detect(Var2, "Aug") ~ "Aug"),
+         depth = case_when(str_detect(Var1, "D") & str_detect(Var2, "D") ~ "Deep",
+                           str_detect(Var1, "M") & str_detect(Var2, "M") ~ "Middle",
+                           str_detect(Var1, "S") & str_detect(Var2, "S") ~ "Surface")) %>% 
+  mutate(Habitat = "Fen")
+
+```
+
+### Joining microbial data
+
+```{r}
+microbial_eco <- rbind(palsa_eco, bog_eco, fen_eco) %>% 
+  mutate(Habitat = factor(Habitat, levels = c("Palsa", "Bog", "Fen")),
+         month = factor(month, levels = c("June", "June-July", "July", "July-Aug", "Aug")),
+         depth = factor(depth, levels = c('Surface', 'Middle', 'Deep')),
+         dataset = 'Microbes')
+```
+
+# Joining all data
+
+```{r}
+eco_process_colors <- c('Homogeneous selection' = '#ED553B', 
+                        'Variable selection' = '#F9A95A', 
+                        'Undominated' = '#3CAEA3', 
+                        'Homogenizing dispersal' = '#5894C1' ,
+                        'Dispersal limitation' = '#89C6F5')
+
+full_eco <- rbind(metabolite_eco, microbial_eco) %>% 
+  mutate(dataset = factor(dataset, levels = c('Microbes', 'Metabolites')))
+```
+
+# Plotting ecobar per season
+
+```{r}
+
+ecobar_month <- full_eco %>%
+  filter(month %in% c('June', 'July', 'Aug')) %>% 
+  mutate(month = factor(month, levels = c('Aug', 'July', 'June'))) %>% 
+  drop_na(month) %>% 
+  group_by(dataset, Habitat, month) %>% 
+  dplyr::count(ecological) %>% 
+  mutate(percentage = n/sum(n)*100) %>% 
+  ggplot()+
+  geom_col(aes(x = percentage, 
+               y = month, 
+               fill = ecological),
+           color = 'black') +
+  scale_fill_manual(values = eco_process_colors) +
+  scale_x_continuous(expand = c(0, 0), 
+                     labels = scales::percent_format(scale = 1)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  labs(fill = 'Ecological\nprocesses') +
+  theme_bw() +
+  facet_grid(cols = vars(Habitat),
+             rows = vars(dataset)) +
+  guides(fill = guide_legend(nrow=2,byrow=TRUE)) +
+  theme(strip.text.x = element_text(angle = 0, face = 'bold',
+                                    color = 'white'),
+        legend.position = 'none',
+        axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        strip.text.y = element_text(face = 'bold', color = 'white'),
+        strip.background.y = element_rect(fill = 'black'))
+
+ecobar_month
+
+
+# Changing facet strips colors
+
+fills <- list_colors[c('Palsa','Bog', 'Fen')]
+
+g <- ggplot_gtable(ggplot_build(ecobar_month))
+stripr <- which(grepl('strip-t', g$layout$name))
+
+k <- 1
+for (i in stripr) {
+  j <- which(grepl('rect', g$grobs[[i]]$grobs[[1]]$childrenOrder))
+  g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill <- fills[k]
+  k <- k+1
+}
+
+dev.off()
+grid.draw(g)
+
+t1 <- as_ggplot(g)
+t1
+
+```
+
+# Plotting ecobar per depth
+
+```{r}
+ecobar_depth <- full_eco %>%
+  mutate(depth = factor(depth, levels = c('Deep', 'Middle', 'Surface'))) %>% 
+  drop_na(depth) %>% 
+  group_by(dataset, Habitat, depth) %>% 
+  dplyr::count(ecological) %>% 
+  mutate(percentage = n/sum(n)*100) %>% 
+  ggplot()+
+  geom_col(aes(x = percentage, 
+               y = depth, 
+               fill = ecological),
+           color = 'black') +
+  scale_fill_manual(values = eco_process_colors) +
+  scale_x_continuous(expand = c(0, 0), 
+                     labels = scales::percent_format(scale = 1)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  labs(fill = 'Ecological\nprocesses') +
+  theme_bw() +
+  facet_grid(cols = vars(Habitat),
+             rows = vars(dataset)) +
+  guides(fill = guide_legend(nrow=2,byrow=TRUE)) +
+  theme(strip.text.x = element_text(angle = 0, face = 'bold',
+                                    color = 'white'),
+        legend.position = 'none',
+        axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        strip.text.y = element_text(face = 'bold', color = 'white'),
+        strip.background.y = element_rect(fill = 'black'))
+
+ecobar_depth
+
+
+# Changing facet strips colors
+
+fills <- list_colors[c('Palsa','Bog', 'Fen')]
+
+g <- ggplot_gtable(ggplot_build(ecobar_depth))
+stripr <- which(grepl('strip-t', g$layout$name))
+
+k <- 1
+for (i in stripr) {
+  j <- which(grepl('rect', g$grobs[[i]]$grobs[[1]]$childrenOrder))
+  g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill <- fills[k]
+  k <- k+1
+}
+
+dev.off()
+grid.draw(g)
+
+t2 <- as_ggplot(g)
+t2
+
+```
+
+# Reactivity plot
+
+```{r}
+
+react_data <- read_csv('input/functional_diversity.csv')
+index_data <- read_csv('input/indices_statistics_metabodirect_2023.csv')
+metadata <- read_csv('input/Peat_so/metadata_updated.csv') %>% 
+  mutate(Depth = case_when(Depth == 'D' ~ "Deep",
+                           Depth == 'M' ~ "Middle",
+                           Depth == 'S' ~ 'Surface'),
+         Depth = factor(Depth, levels = c('Surface', 'Middle', 'Deep')),
+         Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen')))
+
+report_data <- read_csv('input/Report_processed_MolecFormulas_2023_metabodirect.csv') %>% 
+  select(Mass, NOSC, any_of(metadata$SampleID)) %>% 
+  pivot_longer(!c(Mass, NOSC), names_to = 'SampleID', values_to = 'abun') %>% 
+  filter(abun > 0)
+
+
+react_plot <- react_data %>% 
+  left_join(metadata, by = 'SampleID') %>% 
+  ggplot(aes(x = Depth,
+             y = Reactivity)) +
+  geom_boxplot(aes(fill = Habitat)) +
+  scale_fill_manual(values = list_colors) +
+  labs(y = "Rao's Q\n(NOSC as trait)") +
+  theme_bw() +
+  facet_grid(cols = vars(Habitat)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+react_plot
+
+```
+
+
+# Joining panels
+
+```{r}
+# Get legend
+
+for_legend <- ggplot(full_eco,
+                     aes(x = BNTI,
+                         y = Habitat,
+                         fill = ecological),
+                     color = 'black') +
+  geom_col() +
+  guides(fill = guide_legend(nrow=2,byrow=TRUE)) +
+  labs(fill = 'Ecological\nprocess') +
+  theme(legend.position = 'bottom') +
+  scale_fill_manual(values = eco_process_colors)
+
+legend <- as_ggplot(get_legend(for_legend))
+
+layout <- "
+AABB
+AABB
+CCCC
+#DD#
+"
+supp_1 <- t1 + t2 + legend + react_plot +
+  plot_layout(heights = c(5,1, 2), design = layout) +
+  plot_annotation(tag_levels = list(c('A', 'B', '', 'D')))
+
+supp_1
+
+ggsave('../Updated_figures_2023/output/Supp1_5-26-23.png', supp_1, dpi = 300, 
+       width = 10, height = 6)
+
+```
+

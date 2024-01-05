@@ -1,0 +1,1139 @@
+---
+title: "Metabolome paper - Figure 1"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-03-26"
+editor_options:
+  chunk_output_type: console
+---
+# Loading libraries
+```{r}
+library(reshape2)
+require(vegan)
+library(ggsci)
+library(rstatix)
+library(ggpubr)
+library(ggrepel)
+library(grid)
+library(gridExtra)
+library(phyloseq)
+library(ggridges)
+library(patchwork)
+library(corrplot)
+library(tidyverse)
+```
+
+
+# Functions
+
+```{r}
+distance_func <- function(bnti_matrix, geo_matrix, geo_col){
+  
+  geo_selected <- geo_matrix %>% 
+    select(geo_col, SampleID) %>% 
+    rename(Selected = geo_col) %>% 
+    filter(!is.na(Selected))
+  
+  bnti_filt <- bnti_matrix[rownames(bnti_matrix) %in% geo_selected$SampleID, 
+                           colnames(bnti_matrix) %in% geo_selected$SampleID]
+  
+  geo_selected <- geo_selected %>% 
+    filter(SampleID %in% rownames(bnti_filt))
+  
+  bnti_filt <- bnti_filt[geo_selected$SampleID, geo_selected$SampleID]
+  
+  n <- length(rownames(bnti_filt))
+  dist_mat <- as.data.frame(matrix(nrow = n, ncol = n))
+  rownames(dist_mat) <- rownames(bnti_filt)
+  colnames(dist_mat) <- colnames(bnti_filt)
+  
+  for(i in 1:(n-1)){
+    for(j in (i+1):n){
+      dist_mat[j, i] <- abs(geo_selected$Selected[j] - geo_selected$Selected[i])
+    }
+  }
+  dist_mat[upper.tri(dist_mat)] = t(dist_mat)[upper.tri(dist_mat)]
+  return(dist_mat)
+  
+}
+```
+
+
+```{r}
+mantel_fun <- function(bnti_matrix, geo_matrix){
+  
+  bnti_filt <- bnti_matrix[rownames(bnti_matrix) %in% rownames(geo_matrix), 
+                           colnames(bnti_matrix) %in% colnames(geo_matrix)]
+  
+  mantel_test <- mantel(bnti_filt, geo_matrix, 
+                        method = "pearson", permutations = 9999)
+  
+  return(mantel_test)
+}
+
+```
+
+
+# Plots colors
+```{r}
+list_colors <- c('Palsa' = '#703C1B', 'Bog' = '#058000','Fen' = '#0001FF')
+```
+
+# Figure 1
+
+## Violin metabolites
+
+### Loading BNTI matrix and data preprocessing
+
+```{r}
+# Load in bNTI
+weig <- read_csv("../Assembly_Metabolome/output/Abisko_TWCD_bNTI.csv") %>% 
+  column_to_rownames(var = "...1")
+
+# Load in RCBC
+weig.rcbc <- read_csv("../Assembly_Metabolome/output/Abisko_TWCD_RCBC_9999.csv")%>% 
+  column_to_rownames(var = "...1")
+
+## Data Reprocessing
+
+# Matching the order of RCBC to bNTI results
+weig.rcbc = weig.rcbc[row.names(weig), colnames(weig), drop = F]
+
+# Setting the RCBC diagonals to NA
+
+diag(weig.rcbc) = NA
+
+# Reflecting null matrices
+
+weig[upper.tri(weig)] = t(weig)[upper.tri(weig)]
+
+# Removing significant bNTI results from the RCBC results
+
+weig.rcbc[abs(weig) > 2] = NA
+
+```
+
+### Preprocessing Data for plotting
+
+```{r}
+# Melting data
+weig = melt(as.matrix(weig)); weig$Type = "Bulk"
+
+weig.rcbc = melt(as.matrix(weig.rcbc)); weig.rcbc$Type = "All"
+
+#Combine data and remove null values
+
+bnti_data <- weig %>% 
+  filter(!is.na(value))
+
+rcbc_data <- weig.rcbc %>% 
+  filter(!is.na(value))
+
+# Adding Habitat Information
+bnti_data$Habitat = "Bog"
+bnti_data$Habitat[grep("E", bnti_data$Var2)] = "Fen"
+bnti_data$Habitat[grep("P", bnti_data$Var2)] = "Palsa"
+
+bnti_data$Habitat <- factor(bnti_data$Habitat, levels = c("Palsa", "Bog", "Fen"))
+
+rcbc_data$Habitat = "Bog"
+rcbc_data$Habitat[grep("E", rcbc_data$Var2)] = "Fen"
+rcbc_data$Habitat[grep("P", rcbc_data$Var2)] = "Palsa"
+
+rcbc_data$Habitat <- factor(rcbc_data$Habitat, levels = c("Palsa", "Bog", "Fen"))
+
+```
+
+### BNTI plot all metabolites
+
+```{r}
+
+# Boxplots by like samples (example: Palsa vs Palsa)
+
+bnti_data_within <- bnti_data %>% 
+  filter(
+    (str_detect(Var1, '_P_') & str_detect(Var2, '_P_')) |
+      (str_detect(Var1, '_E_') & str_detect(Var2, '_E_')) |
+      (str_detect(Var1, '[a-z]_S_') & str_detect(Var2, '[a-z]_S_'))
+  ) %>% 
+  mutate(Type = str_replace(Type, 'All', 'Bulk'))
+
+
+stat_df <- bnti_data_within %>% 
+  wilcox_test(value~Habitat) %>% 
+  adjust_pvalue(method = 'bonferroni') %>% 
+  add_significance() %>%
+  add_xy_position()
+
+#Violin plot
+
+bp_group_vio_so <- bnti_data_within %>% 
+  mutate(Type = "Bulk metabolites") %>% 
+  ggplot(aes(x = Habitat, y = value, fill = Habitat))+
+  geom_boxplot(width = 0.2, show.legend = FALSE) +
+  geom_violin(alpha = 0.5, show.legend = FALSE) +
+  geom_hline(yintercept = c(-2,2), color = "red", lty = 2)+
+  labs(#title = expression(bold(paste(beta, "NTI ", metabolites))),
+       y = expression(bold(paste(beta, 'NTI'))),
+       fill = 'Habitat')+
+  scale_fill_manual(values = list_colors)+
+  stat_pvalue_manual(stat_df,
+                     label = 'p.adj.signif', inherit.aes = FALSE, hide.ns = TRUE)+
+  facet_wrap(~Type)+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5),
+        #axis.title.y = element_text(hjust = 0.5),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_rect(fill = 'black'),
+        strip.text = element_text(color = 'white', face = 'bold'))
+
+
+bp_group_vio_so
+```
+
+## Violing microbes
+
+### Load data
+
+```{r}
+## Bacteria BNTI
+
+samples_names <- read_csv("../Assembly_Microbiome/data/metadata_matched_MAGs_data_11-29-21.csv")
+
+bacteria_bnti <- read_csv("../Assembly_Microbiome/weighted_BNTI_bacteria.csv") %>% 
+  column_to_rownames("...1")
+
+bacteria_bnti <- bacteria_bnti[colnames(bacteria_bnti),] %>% 
+  rename(!!(set_names(samples_names$names_bnti, samples_names$SampleID))) 
+
+rownames(bacteria_bnti) <- colnames(bacteria_bnti)
+
+# Reflecting  matrices
+
+bacteria_r <- bacteria_bnti
+bacteria_r[upper.tri(bacteria_bnti)] <-  t(bacteria_bnti)[upper.tri(bacteria_bnti)]
+
+# Melting data
+bnti_data_bacteria = melt(as.matrix(bacteria_r))
+
+#Combine data and remove null values
+
+bnti_data_bacteria <- bnti_data_bacteria %>% 
+  filter(!is.na(value))
+
+# Adding Habitat Information
+bnti_data_bacteria$Habitat = "Bog"
+bnti_data_bacteria$Habitat[grep("E", bnti_data_bacteria$Var2)] = "Fen"
+bnti_data_bacteria$Habitat[grep("P", bnti_data_bacteria$Var2)] = "Palsa"
+
+bnti_data_bacteria$Habitat <- factor(bnti_data_bacteria$Habitat, levels = c("Palsa", "Bog", "Fen"))
+
+bnti_data_bacteria <- bnti_data_bacteria %>% 
+  mutate(Type = "microbe")
+```
+
+### BNTI violin plot
+
+```{r}
+# Boxplots by like samples (example: Palsa vs Palsa)
+
+bnti_data_within_bac <- bnti_data_bacteria %>% 
+  filter(
+    (str_detect(Var1, '_P_') & str_detect(Var2, '_P_')) |
+      (str_detect(Var1, '_E_') & str_detect(Var2, '_E_')) |
+      (str_detect(Var1, '[a-z]_S_') & str_detect(Var2, '[a-z]_S_'))
+  )
+
+stat_df <- bnti_data_within_bac %>% 
+  wilcox_test(value~Habitat) %>% 
+  adjust_pvalue(method = 'bonferroni') %>% 
+  add_significance() %>%
+  add_xy_position()
+
+# Boxplots by group
+# Violin plot
+
+bp_group_vio_bacteria <- bnti_data_within_bac %>% 
+  mutate(type = 'Microbiome') %>% 
+  ggplot(aes(x = Habitat, y = value, fill = Habitat))+
+  geom_boxplot(width = 0.2, show.legend = FALSE) +
+  geom_violin(alpha = 0.5, show.legend = FALSE) +
+  geom_hline(yintercept = c(-2,2), color = "red", lty = 2)+
+  labs(y = expression(bold(paste(beta, 'NTI'))),
+       fill = 'Habitat')+
+  scale_fill_manual(values = list_colors)+
+  stat_pvalue_manual(stat_df,
+                     label = 'p.adj.signif', inherit.aes = FALSE, hide.ns = TRUE)+
+  facet_wrap(~type) +
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.title.y = element_text(hjust = 0.5),
+        # axis.text.y = element_text(size = 15),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_rect(fill = 'black'),
+        strip.text = element_text(color = 'white', face = 'bold'))
+bp_group_vio_bacteria
+
+
+```
+
+
+#Combine data and remove null values
+```{r}
+
+#Combine data and remove null values
+
+bnti_data_full <- rbind(bnti_data_bacteria, bnti_data) %>% 
+  filter(!is.na(value)) %>% 
+  mutate(Type = str_replace_all(Type, "All", "Bulk metabolites")) %>% 
+  mutate(Type = str_replace_all(Type, "microbe", "Microbiome"))
+
+bnti_data_full$Habitat <- factor(bnti_data_full$Habitat, levels = c("Palsa", "Bog", "Fen"))
+
+```
+
+## Density plots per habitat
+
+
+```{r}
+# Density plots "within" by like samples (example: Palsa vs Palsa)
+
+bnti_data_within_full <- bnti_data_full %>% 
+  filter(
+    (str_detect(Var1, '_P_') & str_detect(Var2, '_P_')) |
+      (str_detect(Var1, '_E_') & str_detect(Var2, '_E_')) |
+      (str_detect(Var1, '[a-z]_S_') & str_detect(Var2, '[a-z]_S_')))
+```
+
+## Density plots per season
+
+### Density plot by season
+
+### Violin plot with color points colored as season and depth
+
+```{r}
+# Filtering month * month 
+
+bnti_data_within_june <- bnti_data_within_full %>%
+  filter(str_detect(Var1, 'June') & str_detect(Var2, 'June')) %>% 
+  mutate(season = "June")
+
+
+bnti_data_within_july <- bnti_data_within_full %>%
+  filter(str_detect(Var1, 'July') & str_detect(Var2, 'July'))%>% 
+  mutate(season = "July")
+
+bnti_data_within_aug <- bnti_data_within_full %>%
+  filter(str_detect(Var1, 'Aug') & str_detect(Var2, 'Aug'))%>% 
+  mutate(season = "Aug")
+
+bnti_data_season <- rbind(bnti_data_within_june,
+                          bnti_data_within_july,
+                          bnti_data_within_aug)
+bnti_data_season$season  <- factor(bnti_data_season$season, levels = c("June", "July", "Aug"))
+
+
+```
+
+```{r}
+month_den <- bnti_data_season %>% 
+  filter(Type == 'Microbiome' | Type == 'Bulk') %>%
+  mutate(Type = str_replace(Type, "Bulk", "Bulk metabolites")) %>% 
+  mutate(season = factor(season, levels = c('Aug', 'July', 'June'))) %>% 
+  mutate(Type = factor(Type, levels = c("Microbiome", "Bulk metabolites"))) %>%
+  ggplot(aes(x = value, y = season, fill = Habitat))+
+  geom_density_ridges(alpha = 0.5,
+                      scale = .8) +
+  scale_y_discrete(expand = c(0,0)) +
+  geom_vline(xintercept = c(-2,2), color = "red", lty = 2)+
+  labs(#title = expression(bold("Density plot")),
+       y = expression(bold("Density")),
+       x = expression(bold(paste(beta, "NTI"))))+
+  scale_fill_manual(values = list_colors)+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5, size = 15),
+        axis.title.y = element_text(hjust = 0.5)) + 
+  facet_grid(cols = vars(Type), scales = 'free') +
+  theme(strip.background = element_rect(fill = 'black'),
+        strip.text = element_text(color = 'white', face = 'bold'))
+
+month_den
+
+```
+
+
+## Density plots per depth
+
+### Density plot by depth
+
+### Violin plot with color points colored as season and depth
+
+```{r}
+# Filtering month * month 
+
+bnti_data_within_surface <- bnti_data_within_full %>%
+  filter(str_detect(Var1, 'S_12') & str_detect(Var2, 'S_12')) %>% 
+  mutate(depth = "Surface")
+
+
+bnti_data_within_middle <- bnti_data_within_full %>%
+  filter(str_detect(Var1, 'M') & str_detect(Var2, 'M'))%>% 
+  mutate(depth = "Middle")
+
+bnti_data_within_deep <- bnti_data_within_full %>%
+  filter(str_detect(Var1, 'D') & str_detect(Var2, 'D'))%>% 
+  mutate(depth = "Deep")
+
+
+bnti_data_depth <- rbind(bnti_data_within_surface,
+                          bnti_data_within_middle,
+                          bnti_data_within_deep)
+
+bnti_data_depth$depth  <- factor(bnti_data_depth$depth, levels = c("Surface", "Middle", "Deep"))
+
+
+```
+
+```{r}
+depth_den <- bnti_data_depth %>% 
+  filter(Type == 'Microbiome' | Type == 'Bulk') %>%
+  mutate(Type = str_replace(Type, "Bulk", "Bulk metabolites")) %>% 
+  mutate(depth = factor(depth, levels = c("Deep", "Middle", "Surface"))) %>% 
+  mutate(Type = factor(Type, levels = c("Microbiome", "Bulk metabolites"))) %>% 
+  ggplot(aes(x = value, y = depth, fill = Habitat, show_le))+
+  geom_density_ridges(alpha = 0.5,
+                      scale = .8) +
+  scale_y_discrete(expand = c(0,0)) +
+  geom_vline(xintercept = c(-2,2), color = "red", lty = 2)+
+  labs(#title = expression(bold("Density plot")),
+       y = expression(bold("Density")),
+       x = expression(bold(paste(beta, "NTI"))))+
+  scale_fill_manual(values = list_colors)+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5, size = 15),
+        axis.title.y = element_text(hjust = 0.5)) + 
+  facet_grid(cols = vars(Type), scales = 'free') +
+  theme(strip.background = element_rect(fill = 'black'),
+        strip.text = element_text(color = 'white', face = 'bold'))
+
+depth_den
+
+```
+
+
+## Ecological processes
+
+### Colors
+
+```{r}
+eco_process_colors <- c('Homogeneous selection' = '#ED553B', 
+                        'Variable selection' = '#F9A95A', 
+                        'Undominated' = '#3CAEA3', 
+                        'Homogenizing dispersal' = '#5894C1' ,
+                        'Dispersal limitation' = '#89C6F5')
+```
+
+### Loading calculated ecological process and filtering
+
+#### Metabolites
+
+```{r}
+data_metabolites <- read.csv("input/Ecological_process_pw_peat_1-25-22.csv") %>% 
+  mutate(Compound = str_replace(Compound, "All" , "Bulk metabolites"),
+         Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen'))) %>% 
+  select(-Var1, -Type) %>% 
+  rename(Assembly_process = Var2) %>% 
+  mutate(Assembly_process = str_replace(Assembly_process, 
+                                        'Homogenous', 'Homogeneous'))
+```
+
+#### Bacteria
+
+```{r}
+#Loading RCBC matrix
+rcbc_bac <- read_tsv("input/rcbc_matrix_changed_names.tsv") %>% 
+  column_to_rownames(var = "...1")
+
+## Data Preprocessing
+rcbc_bac <- rcbc_bac[colnames(rcbc_bac),] %>% 
+  rename(!!(set_names(samples_names$names_bnti, samples_names$SampleID)))
+rownames(rcbc_bac) <- colnames(rcbc_bac)
+
+# Reflecting null matrices
+rcbc_r <- rcbc_bac
+rcbc_r[upper.tri(rcbc_bac)] <-  t(rcbc_bac)[upper.tri(rcbc_bac)]
+
+# Removing significant bNTI results from the RCBC results
+rcbc_r[abs(bacteria_r) > 2] = NA
+
+# Melting data
+rcbc_r = melt(as.matrix(rcbc_r))
+
+#Combine data and remove null values
+rcbc_data_bac <- rcbc_r %>% 
+  filter(!is.na(value)) %>% 
+  mutate(Habitat = case_when(str_detect(Var2, 'E') ~ 'Fen',
+                             str_detect(Var2, 'P') ~ 'Palsa',
+                             TRUE ~ 'Bog'),
+         Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen')))
+
+```
+
+##### Determining ecological processes fractionation
+
+```{r}
+#BOG only
+
+bnti_data_bog = bnti_data_bacteria[-c(grep("E", bnti_data_bacteria$Var1), 
+                             grep("E", bnti_data_bacteria$Var2),
+                             grep("P", bnti_data_bacteria$Var1), 
+                             grep("P", bnti_data_bacteria$Var2)),]
+
+rcbc_data_bog = rcbc_data_bac[-c(grep("E", rcbc_data_bac$Var1), 
+                             grep("E", rcbc_data_bac$Var2),
+                             grep("P", rcbc_data_bac$Var1), 
+                             grep("P", rcbc_data_bac$Var2)),]
+
+
+# Determining ecological processes fractionation
+eco.proc_2 = data.frame(hom.sel = NA, 
+                        hom.dis = NA, 
+                        und = NA, 
+                        dis.lim = NA, 
+                        var.sel = NA, 
+                        row.names = "Bog")
+
+eco.proc_2$hom.sel = length(which(bnti_data_bog$value <= -2)) / 
+  length(bnti_data_bog$value)
+
+eco.proc_2$hom.dis = length(which(rcbc_data_bog$value <= -0.95)) / 
+  length(bnti_data_bog$value)
+
+eco.proc_2$und = length(which(abs(rcbc_data_bog$value) < 0.95)) / 
+  length(bnti_data_bog$value)
+
+eco.proc_2$dis.lim = length(which(rcbc_data_bog$value >= 0.95)) / 
+  length(bnti_data_bog$value)
+
+eco.proc_2$var.sel = length(which(bnti_data_bog$value >= 2)) / 
+  length(bnti_data_bog$value)
+
+eco.proc_2 = melt(as.matrix(eco.proc_2))
+
+eco.proc_2$value = (eco.proc_2$value*100)
+
+```
+
+
+```{r}
+#FEN only
+
+bnti_data_fen = bnti_data_bacteria[-c(grep("[a-z]_S_", bnti_data_bacteria$Var1), 
+                             grep("[a-z]_S_", bnti_data_bacteria$Var2),
+                             grep("P", bnti_data_bacteria$Var1), 
+                             grep("P", bnti_data_bacteria$Var2)),]
+
+rcbc_data_fen = rcbc_data_bac[-c(grep("[a-z]_S_", rcbc_data_bac$Var1), 
+                             grep("[a-z]_S_", rcbc_data_bac$Var2),
+                             grep("P", rcbc_data_bac$Var1), 
+                             grep("P", rcbc_data_bac$Var2)),]
+
+
+# Determining ecological processes fractionation
+eco.proc_fen = data.frame(hom.sel = NA, 
+                          hom.dis = NA, 
+                          und = NA, 
+                          dis.lim = NA, 
+                          var.sel = NA, 
+                          row.names = "Fen")
+
+eco.proc_fen$hom.sel = length(which(bnti_data_fen$value <= -2)) / 
+  length(bnti_data_fen$value)
+
+eco.proc_fen$hom.dis = length(which(rcbc_data_fen$value <= -0.95)) / 
+  length(bnti_data_fen$value)
+
+eco.proc_fen$und = length(which(abs(rcbc_data_fen$value) < 0.95)) / 
+  length(bnti_data_fen$value)
+
+eco.proc_fen$dis.lim = length(which(rcbc_data_fen$value >= 0.95)) / 
+  length(bnti_data_fen$value)
+
+eco.proc_fen$var.sel = length(which(bnti_data_fen$value >= 2)) / 
+  length(bnti_data_fen$value)
+
+eco.proc_fen = melt(as.matrix(eco.proc_fen))
+
+eco.proc_fen$value = (eco.proc_fen$value*100)
+
+```
+
+```{r}
+#PALSA only
+
+bnti_data_palsa = bnti_data_bacteria[-c(grep("[a-z]_S_", bnti_data_bacteria$Var1), 
+                               grep("[a-z]_S_", bnti_data_bacteria$Var2),
+                               grep("E", bnti_data_bacteria$Var1), 
+                               grep("E", bnti_data_bacteria$Var2)),]
+
+rcbc_data_palsa = rcbc_data_bac[-c(grep("[a-z]_S_", rcbc_data_bac$Var1), 
+                               grep("[a-z]_S_", rcbc_data_bac$Var2),
+                               grep("E", rcbc_data_bac$Var1),
+                               grep("E", rcbc_data_bac$Var2)),]
+
+
+# Determining ecological processes fractionation
+eco.proc_palsa = data.frame(hom.sel = NA, 
+                            hom.dis = NA, 
+                            und = NA, 
+                            dis.lim = NA, 
+                            var.sel = NA,
+                            row.names = "Palsa")
+
+eco.proc_palsa$hom.sel = length(which(bnti_data_palsa$value <= -2)) / 
+  length(bnti_data_palsa$value)
+
+eco.proc_palsa$hom.dis = length(which(rcbc_data_palsa$value <= -0.95)) / 
+  length(bnti_data_palsa$value)
+
+eco.proc_palsa$und = length(which(abs(rcbc_data_palsa$value) < 0.95)) / 
+  length(bnti_data_palsa$value)
+
+eco.proc_palsa$dis.lim = length(which(rcbc_data_palsa$value >= 0.95)) / 
+  length(bnti_data_palsa$value)
+
+eco.proc_palsa$var.sel = length(which(bnti_data_palsa$value >= 2)) / 
+  length(bnti_data_palsa$value)
+
+eco.proc_palsa = melt(as.matrix(eco.proc_palsa))
+
+eco.proc_palsa$value = (eco.proc_palsa$value*100)
+```
+
+##### Joining data
+```{r}
+microbe_data <- rbind(eco.proc_palsa, eco.proc_2, eco.proc_fen) %>% 
+  mutate(Var2 = case_when(Var2 == 'hom.sel' ~ 'Homogeneous selection',
+                          Var2 == 'hom.dis' ~ 'Homogenizing dispersal',
+                          Var2 == 'und' ~ 'Undominated',
+                          Var2 == 'dis.lim' ~ 'Dispersal limitation',
+                          Var2 == 'var.sel' ~ 'Variable selection')) %>% 
+  rename(Habitat = Var1,
+         Assembly_process = Var2) %>% 
+  mutate(Compound = 'Microbiome')
+
+```
+
+### Plotting
+
+```{r}
+all_eco_process <- rbind(data_metabolites, microbe_data) %>% 
+  mutate(Compound = factor(Compound, 
+                           levels = rev(c('Microbiome',
+                                          'Bulk metabolites'))))
+
+eco_process_bar <- ggplot(all_eco_process) +
+  geom_col(aes(x = value,
+               y = Compound,
+               fill = Assembly_process),
+           color = 'black') +
+  scale_fill_manual(values = eco_process_colors) +
+  theme_bw() +
+  facet_grid(cols = vars(Habitat)) +
+  guides(fill = guide_legend(nrow=2,byrow=TRUE)) +
+  theme(strip.text.x = element_text(angle = 0, face = 'bold',
+                                    color = 'white'),
+        legend.position = 'bottom',
+        axis.title.y = element_blank())
+
+eco_process_bar
+
+fills <- list_colors[c('Palsa', 'Bog', 'Fen')]
+
+g <- ggplot_gtable(ggplot_build(eco_process_bar))
+stripr <- which(grepl('strip-t', g$layout$name))
+
+k <- 1
+for (i in stripr) {
+  j <- which(grepl('rect', g$grobs[[i]]$grobs[[1]]$childrenOrder))
+  g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill <- fills[k]
+  k <- k+1
+}
+
+dev.off()
+grid.draw(g)
+
+eco_proc_final <- g
+```
+
+## Mantel Heatmap
+
+### Loading biogeochemical data
+
+```{r}
+peat_envs <- read_csv("input/peat_geodata_5-20-23.csv")
+```
+
+```{r}
+
+geo <- peat_envs %>% 
+  select(SampleID, Month, Habitat, Depth, DepthAvg__, `T, soil (C)`, CtoN_wt, Precipitation_3day_accumulation_mm) %>% 
+    rename(T_soil = `T, soil (C)`) %>% 
+  rename_with(~str_remove(.x, '__')) 
+
+```
+
+### Load in bNTI
+```{r}
+
+weig <- read_csv(
+  "input/Abisko_TWCD_bNTI_999_so_5_2_21.csv"
+) %>% 
+  column_to_rownames(var = "...1")
+
+weig[upper.tri(weig)] = t(weig)[upper.tri(weig)]
+
+```
+
+
+```{r}
+## Bacteria BNTI
+
+samples_names <- read_csv(
+  "input/metadata_matched_MAGs_data_11-29-21.csv"
+)
+
+bacteria_bnti <- read_csv("input/weighted_BNTI_bacteria.csv") %>% 
+  column_to_rownames("...1")
+
+bacteria_bnti <- bacteria_bnti[colnames(bacteria_bnti),] %>% 
+  rename(!!(set_names(samples_names$names_bnti, samples_names$SampleID))) 
+
+rownames(bacteria_bnti) <- colnames(bacteria_bnti)
+
+# Reflecting  matrices
+
+bacteria_r <- bacteria_bnti
+bacteria_r[upper.tri(bacteria_bnti)] <-  t(bacteria_bnti)[upper.tri(bacteria_bnti)]
+```
+
+### Analysis by Habitat
+#### Bog - ALL 
+
+```{r}
+#Filtering BOG data
+
+geo_bog <- geo %>% 
+  filter(str_detect(SampleID, "[a-z]_S"))
+
+sel_columns <- c('T_soil', 'DepthAvg',
+             'CtoN_wt', 'Precipitation_3day_accumulation_mm', 'bacteria')
+
+matrix_list <- map(sel_columns, function(x){
+  if(x == 'bacteria'){
+    mat <- bacteria_r[rownames(bacteria_r) %in% geo_bog$SampleID, 
+                                     colnames(bacteria_r) %in% geo_bog$SampleID,]
+  } else {
+    mat <- distance_func(weig, geo_bog, x)
+  }
+  
+  return(mat)
+})
+
+names(matrix_list) <- c('soil_t', 'depth', 'C:N_ratio',
+                        'precipitation', 'microbial_bNTI')
+
+
+```
+
+```{r}
+
+mantel_stats <- tibble(Geochemistry = character(), Mantel_stat = numeric(), p_value = numeric(), pval.adj = numeric(), .rows = 0)
+
+for(i in 1:length(matrix_list)){
+  
+  mat <- as.data.frame(matrix_list[i])
+  colnames(mat) <- str_remove(colnames(mat), '.*\\.')
+  
+  mantel_result <- mantel_fun(weig, mat)
+  temp <- tibble(Geochemistry = names(matrix_list)[i], Mantel_stat = mantel_result$statistic, 
+                 p_value = mantel_result$signif)
+  
+  mantel_stats <- rbind(mantel_stats, temp)
+}
+
+mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
+
+mantel_stats_bog_all <- mantel_stats %>% 
+  mutate(Type = 'Bulk')
+
+```
+
+#### FEN - ALL 
+
+```{r}
+#Filtering Fen data 
+geo_Fen <- geo %>% 
+  filter(str_detect(SampleID, "E"))
+
+sel_columns <- c('T_soil', 'DepthAvg',
+             'CtoN_wt', 'Precipitation_3day_accumulation_mm', 'bacteria')
+
+matrix_list <- map(sel_columns, function(x){
+  if(x == 'bacteria'){
+    mat <- bacteria_r[rownames(bacteria_r) %in% geo_Fen$SampleID, 
+                                     colnames(bacteria_r) %in% geo_Fen$SampleID,]
+  } else {
+    mat <- distance_func(weig, geo_Fen, x)
+  }
+  
+  return(mat)
+})
+
+names(matrix_list) <- c('soil_t', 'depth', 'C:N_ratio',
+                        'precipitation', 'microbial_bNTI')
+
+```
+
+```{r}
+mantel_stats <- tibble(Geochemistry = character(), Mantel_stat = numeric(), p_value = numeric(), pval.adj = numeric(), .rows = 0)
+
+for(i in 1:length(matrix_list)){
+  
+  mat <- as.data.frame(matrix_list[i])
+  colnames(mat) <- str_remove(colnames(mat), '.*\\.')
+  
+  mantel_result <- mantel_fun(weig, mat)
+  temp <- tibble(Geochemistry = names(matrix_list)[i], Mantel_stat = mantel_result$statistic, 
+                 p_value = mantel_result$signif)
+  
+  mantel_stats <- rbind(mantel_stats, temp)
+}
+
+mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
+
+mantel_stats_fen_all <- mantel_stats %>% 
+  mutate(Type = 'Bulk')
+
+```
+
+#### Palsa - ALL 
+
+```{r}
+#Filtering Palsa data 
+geo_Palsa <- geo %>% 
+  filter(str_detect(SampleID, "P"))
+
+sel_columns <- c('T_soil', 'DepthAvg',
+             'CtoN_wt', 'Precipitation_3day_accumulation_mm', 'bacteria')
+
+matrix_list <- map(sel_columns, function(x){
+  if(x == 'bacteria'){
+    mat <- bacteria_r[rownames(bacteria_r) %in% geo_Palsa$SampleID, 
+                                     colnames(bacteria_r) %in% geo_Palsa$SampleID,]
+  } else {
+    mat <- distance_func(weig, geo_Palsa, x)
+  }
+  
+  return(mat)
+})
+
+names(matrix_list) <- c('soil_t', 'depth', 'C:N_ratio',
+                        'precipitation', 'microbial_bNTI')
+
+```
+
+```{r}
+mantel_stats <- tibble(Geochemistry = character(), Mantel_stat = numeric(), p_value = numeric(), pval.adj = numeric(), .rows = 0)
+
+for(i in 1:length(matrix_list)){
+  
+  mat <- as.data.frame(matrix_list[i])
+  colnames(mat) <- str_remove(colnames(mat), '.*\\.')
+  
+  mantel_result <- mantel_fun(weig, mat)
+  temp <- tibble(Geochemistry = names(matrix_list)[i], Mantel_stat = mantel_result$statistic, 
+                 p_value = mantel_result$signif)
+  
+  mantel_stats <- rbind(mantel_stats, temp)
+}
+
+mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
+
+mantel_stats_Palsa_all <- mantel_stats %>% 
+  mutate(Type = 'Bulk')
+
+```
+
+
+#### Bacteria - Palsa
+
+```{r}
+#Filtering Palsa data 
+geo_Palsa <- geo %>% 
+  filter(str_detect(SampleID, "P"))
+
+sel_columns <- c('T_soil', 'DepthAvg',
+             'CtoN_wt', 'Precipitation_3day_accumulation_mm')
+
+matrix_list <- map(sel_columns, function(x){
+  if(x == 'bacteria'){
+    mat <- bacteria_r[rownames(bacteria_r) %in% geo_Palsa$SampleID, 
+                                     colnames(bacteria_r) %in% geo_Palsa$SampleID,]
+  } else {
+    mat <- distance_func(bacteria_r, geo_Palsa, x)
+  }
+  
+  return(mat)
+})
+
+names(matrix_list) <- c('soil_t', 'depth', 'C:N_ratio',
+                        'precipitation')
+
+```
+
+```{r}
+mantel_stats <- tibble(Geochemistry = character(), Mantel_stat = numeric(), p_value = numeric(), pval.adj = numeric(), .rows = 0)
+
+for(i in 1:length(matrix_list)){
+  
+  mat <- as.data.frame(matrix_list[i])
+  colnames(mat) <- str_remove(colnames(mat), '.*\\.')
+  
+  mantel_result <- mantel_fun(bacteria_r, mat)
+  temp <- tibble(Geochemistry = names(matrix_list)[i], Mantel_stat = mantel_result$statistic, 
+                 p_value = mantel_result$signif)
+  
+  mantel_stats <- rbind(mantel_stats, temp)
+}
+
+mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
+
+data_plot_Palsa_bacteria <- mantel_stats %>% 
+  mutate(Habitat = 'Palsa',
+         Type = 'Microbial \u03B2NTI')
+```
+
+#### Bacteria - Bog
+
+```{r}
+#Filtering Bog
+geo_bog <- geo %>% 
+  filter(str_detect(SampleID, "[a-z]_S"))
+
+sel_columns <- c('T_soil', 'DepthAvg',
+             'CtoN_wt', 'Precipitation_3day_accumulation_mm')
+
+matrix_list <- map(sel_columns, function(x){
+  if(x == 'bacteria'){
+    mat <- bacteria_r[rownames(bacteria_r) %in% geo_$SampbogleID, 
+                                     colnames(bacteria_r) %in% geo_bog$SampleID,]
+  } else {
+    mat <- distance_func(bacteria_r, geo_bog, x)
+  }
+  
+  return(mat)
+})
+
+names(matrix_list) <- c('soil_t', 'depth','C:N_ratio',
+                        'precipitation')
+```
+
+```{r}
+mantel_stats <- tibble(Geochemistry = character(), Mantel_stat = numeric(), p_value = numeric(), pval.adj = numeric(), .rows = 0)
+
+for(i in 1:length(matrix_list)){
+  
+  mat <- as.data.frame(matrix_list[i])
+  colnames(mat) <- str_remove(colnames(mat), '.*\\.')
+  
+  mantel_result <- mantel_fun(bacteria_r, mat)
+  temp <- tibble(Geochemistry = names(matrix_list)[i], Mantel_stat = mantel_result$statistic, 
+                 p_value = mantel_result$signif)
+  
+  mantel_stats <- rbind(mantel_stats, temp)
+}
+
+mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
+
+data_plot_Bog_bacteria <- mantel_stats %>% 
+  mutate(Habitat = 'Bog',
+         Type = 'Microbial \u03B2NTI')
+```
+
+#### Bacteria - Fen
+
+```{r}
+#Filtering fen data 
+geo_Fen <- geo %>% 
+  filter(str_detect(SampleID, "E"))
+
+sel_columns <- c('T_soil', 'DepthAvg',
+             'CtoN_wt', 'Precipitation_3day_accumulation_mm')
+
+matrix_list <- map(sel_columns, function(x){
+  if(x == 'bacteria'){
+    mat <- bacteria_r[rownames(bacteria_r) %in% geo_Fen$SampleID, 
+                                     colnames(bacteria_r) %in% geo_Fen$SampleID,]
+  } else {
+    mat <- distance_func(bacteria_r, geo_Fen, x)
+  }
+  
+  return(mat)
+})
+
+names(matrix_list) <- c('soil_t', 'depth', 'C:N_ratio',
+                        'precipitation')
+```
+
+```{r}
+mantel_stats <- tibble(Geochemistry = character(), Mantel_stat = numeric(), p_value = numeric(), pval.adj = numeric(), .rows = 0)
+
+for(i in 1:length(matrix_list)){
+  
+  mat <- as.data.frame(matrix_list[i])
+  colnames(mat) <- str_remove(colnames(mat), '.*\\.')
+  
+  mantel_result <- mantel_fun(bacteria_r, mat)
+  temp <- tibble(Geochemistry = names(matrix_list)[i], Mantel_stat = mantel_result$statistic, 
+                 p_value = mantel_result$signif)
+  
+  mantel_stats <- rbind(mantel_stats, temp)
+}
+
+mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
+
+data_plot_Fen_bacteria <- mantel_stats %>% 
+  mutate(Habitat = 'Fen',
+         Type = 'Microbial \u03B2NTI')
+```
+
+### Joining and plotting
+
+```{r}
+
+mantel_stats_Palsa_all <- mantel_stats_Palsa_all %>% 
+  mutate( Habitat = "Palsa") %>% 
+  mutate(Type = 'Metabolite \u03B2NTI')
+
+mantel_stats_bog_all <- mantel_stats_bog_all %>% 
+  mutate( Habitat = "Bog") %>% 
+  mutate(Type = 'Metabolite \u03B2NTI')
+
+mantel_stats_fen_all <- mantel_stats_fen_all %>% 
+  mutate( Habitat = "Fen") %>% 
+  mutate(Type = 'Metabolite \u03B2NTI')
+
+
+data_plot <- rbind(mantel_stats_Palsa_all, mantel_stats_bog_all, mantel_stats_fen_all,
+                   data_plot_Palsa_bacteria, data_plot_Bog_bacteria,
+                   data_plot_Fen_bacteria) %>% 
+  mutate(Signif = case_when(pval.adj <= 0.0001 ~ '****',
+                            pval.adj <= 0.001 ~  '***',
+                            pval.adj <= 0.01 ~    '**',
+                            pval.adj <= 0.05 ~ '*')) %>% 
+  mutate(Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen'))) %>% 
+  rbind(list('microbial_bNTI', NA, NA, NA, 'Microbial \u03B2NTI', 'Palsa', NA)) %>% 
+  rbind(list('microbial_bNTI', NA, NA, NA, 'Microbial \u03B2NTI', 'Bog', NA)) %>% 
+  rbind(list('microbial_bNTI', NA, NA, NA, 'Microbial \u03B2NTI', 'Fen', NA))
+
+
+mantel_heatmap <- data_plot %>% 
+  mutate(Geochemistry = case_when(Geochemistry == 'soil_t' ~ 'Soil temperature',
+                                  Geochemistry == 'depth' ~ 'Depth',
+                                  Geochemistry == 'microbial_bNTI' ~ 'Microbial \u03B2NTI',
+                                  Geochemistry == 'C:N_ratio' ~ 'C:N ratio',
+                                  Geochemistry == 'precipitation' ~ 'Precipitation',
+                                  TRUE ~ Geochemistry),
+         Geochemistry = factor(Geochemistry, levels = c('Depth',
+                                                        'Soil temperature',
+                                                        'C:N ratio',
+                                                        'Precipitation',
+                                                        'Microbial \u03B2NTI'))) %>%  
+  ggplot(aes(x = Type, y = Geochemistry, fill = Mantel_stat))+
+  geom_tile(color = "white")+
+  scale_fill_distiller(palette = 'RdBu', 
+                       limits = c(-0.55, 0.55), na.value = 'gray80')+
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  geom_text(aes(label = Signif))+
+  labs(fill = 'Mantel \nStatistic')+
+  theme(plot.title = element_text(face="bold", hjust = 0.5),
+        strip.text = element_text(face = "bold", color = "white"),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title = element_blank()) +
+  facet_wrap(~Habitat)
+
+mantel_heatmap
+
+# Changing facet strips colors
+
+fills <- list_colors[c('Palsa', 'Bog', 'Fen')]
+
+g <- ggplot_gtable(ggplot_build(mantel_heatmap))
+stripr <- which(grepl('strip-t', g$layout$name))
+
+k <- 1
+for (i in stripr) {
+  j <- which(grepl('rect', g$grobs[[i]]$grobs[[1]]$childrenOrder))
+  g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill <- fills[k]
+  k <- k+1
+}
+
+dev.off()
+grid.draw(g)
+
+t2 <- as_ggplot(g)
+
+```
+
+## Figure 1 -Join
+
+```{r}
+
+partial_1 <- ggarrange(bp_group_vio_bacteria, bp_group_vio_so,
+                       labels = "AUTO")
+
+partial_1
+
+partial_2 <- ggarrange(depth_den, month_den, common.legend = TRUE, legend = "bottom",
+                       labels = c("C", "D"))
+
+
+partial_2
+
+
+partial_3 <- ggarrange(partial_1, partial_2,
+                       ncol = 1)
+
+partial_3
+
+
+partial_4 <- ggarrange(eco_proc_final, t2,
+                       ncol = 1,
+                       labels = c("E", "F"))
+
+partial_4
+
+
+final_fig1 <- ggarrange(partial_3, partial_4)
+
+final_fig1
+
+
+ggsave('output/Figure1_final.png', final_fig1, dpi = 300, height = 8, width = 15)
+
+
+```
+
+
+
+
+
+
+

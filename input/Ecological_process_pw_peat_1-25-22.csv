@@ -1,0 +1,16 @@
+Habitat,Type,Compound,Var1,Var2,value
+Bog,Peat,All,Weighted,Homogenous selection,0.854700855
+Bog,Peat,All,Weighted,Homogenizing dispersal,10.54131054
+Bog,Peat,All,Weighted,Undominated,0
+Bog,Peat,All,Weighted,Dispersal limitation,0
+Bog,Peat,All,Weighted,Variable selection,88.6039886
+Fen,Peat,All,Weighted,Homogenous selection,2.216748768
+Fen,Peat,All,Weighted,Homogenizing dispersal,26.60098522
+Fen,Peat,All,Weighted,Undominated,0
+Fen,Peat,All,Weighted,Dispersal limitation,0
+Fen,Peat,All,Weighted,Variable selection,71.18226601
+Palsa,Peat,All,Weighted,Homogenous selection,0.492610837
+Palsa,Peat,All,Weighted,Homogenizing dispersal,14.5320197
+Palsa,Peat,All,Weighted,Undominated,0
+Palsa,Peat,All,Weighted,Dispersal limitation,0
+Palsa,Peat,All,Weighted,Variable selection,84.97536946
