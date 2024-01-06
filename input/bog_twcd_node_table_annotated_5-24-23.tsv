@@ -1,0 +1,320 @@
+Name	node.degree	node.betw	node.stress	node.evcent	Clustering.Coefficient	No. module	Zi	Pi	Node_type	Type_data	Phylum_Elcomposition	Class_Mol_formula	Order_bs2class	Family_NOSC	Genus_GFE	Species_DBE
+mass14225	6	9.52749748	158	0.058922424	0.733333333	3	0.266570346	0	Peripheral nodes	metabolite	CHOS	C51H42O8S	Lignin	-0.470588235	73.71176471	31
+mass14172	6	6248.203305	126935	0.00244487	0.066666667	0	1.066003582	0.444444444	Peripheral nodes	metabolite	CHOS	C51H40O7S	Cond Hydrocarbon	-0.470588235	73.71176471	32
+mass14139	3	1199	8189	3.03E-04	0	0	0.426401433	0	Peripheral nodes	metabolite	CHOS	C50H40O7S	Lignin	-0.48	73.98	31
+mass14084	2	3	3	0	0	8	0.5	0	Peripheral nodes	metabolite	CHOS	C50H40O6S	Unsat Hydrocarbon	-0.52	75.12	31
+mass14034	7	7360.792195	126402	3.63E-04	0.047619048	0	2.34520788	0.244897959	Peripheral nodes	metabolite	CHOS	C49H38O6S	Cond Hydrocarbon	-0.489795918	74.25918367	31
+mass13977	3	5	5	0	0	8	1.75	0	Peripheral nodes	metabolite	CHOS	C49H36O5S	Cond Hydrocarbon	-0.489795918	74.25918367	32
+mass13861	6	9.52749748	158	0.058922424	0.733333333	3	0.266570346	0	Peripheral nodes	metabolite	CHOS	C47H34O5S	Cond Hydrocarbon	-0.468085106	73.64042553	31
+mass13831	1	0	0	0	0	39	0	0	Peripheral nodes	metabolite	CHOS	C48H34O4S	Cond Hydrocarbon	-0.5	74.55	32
+mass13807	1	0	0	1.94E-05	0	0	-0.852802865	0	Peripheral nodes	metabolite	CHOS	C48H32O4S	Cond Hydrocarbon	-0.458333333	73.3625	33
+mass13802	4	418.4376992	6827	0.037497724	0.333333333	1	-0.315905578	0.625	Connectors	metabolite	CHNOP	C28H35O18NP	Lignin	-0.035714286	61.31785714	12.5
+mass13743	1	0	0	0	0	11	-1.118033989	0	Peripheral nodes	metabolite	CHOS	C46H34O5S	Cond Hydrocarbon	-0.47826087	73.93043478	30
+mass13727	1	0	0	1.96E-04	0	1	-0.992846101	0	Peripheral nodes	metabolite	CHOS	C47H36O4S	Cond Hydrocarbon	-0.553191489	76.06595745	30
+mass13701	14	1703.108495	31737	0.100165242	0.263736264	3	2.336410677	0	Peripheral nodes	metabolite	CHNOP	C20H41O23NP	Carbohydrate	0.15	56.025	1.5
+mass13681	2	484	3280	4.50E-06	0	0	-0.213200716	0	Peripheral nodes	metabolite	CHOS	C47H32O4S	Cond Hydrocarbon	-0.468085106	73.64042553	32
+mass13663	1	0	0	1.49E-05	0	0	-0.852802865	0	Peripheral nodes	metabolite	CHOS	C48H34O3S	Cond Hydrocarbon	-0.541666667	75.7375	32
+mass13658	3	2363.107191	63398	0.029242245	0.333333333	1	-0.315905578	0.444444444	Peripheral nodes	metabolite	CHNOP	C27H33O18NP	Tannin	0.037037037	59.24444444	12.5
+mass13619	8	1662.280805	44445	0.06584715	0.107142857	3	0.525300387	0.21875	Peripheral nodes	metabolite	CHNOP	C28H33O17NP	Lignin	-0.035714286	61.31785714	13.5
+mass13608	4	3107.651536	56538	0.005063659	0	3	-0.76834982	0.5	Peripheral nodes	metabolite	CHOS	C46H36O4S	Cond Hydrocarbon	-0.565217391	76.40869565	29
+mass13552	2	85.93118058	2970	2.76E-08	0	5	-0.956902634	0	Peripheral nodes	metabolite	CHOS	C47H34O3S	Cond Hydrocarbon	-0.553191489	76.06595745	31
+mass13530	1	0	0	0	0	39	0	0	Peripheral nodes	metabolite	CHOS	C47H32O3S	Cond Hydrocarbon	-0.510638298	74.85319149	32
+mass13442	1	0	0	0	0	24	0	0	Peripheral nodes	metabolite	CHNO	C34H37O13N	Lignin	-0.235294118	67.00588235	17
+mass13400	1	0	0	4.46E-05	0	0	-0.852802865	0	Peripheral nodes	metabolite	CHNOP	C23H39O19NP	Carbohydrate	-0.130434783	64.0173913	5.5
+mass13373	2	0	0	0.025239628	1	3	-0.76834982	0	Peripheral nodes	metabolite	CHNOP	C23H37O19NP	Carbohydrate	-0.043478261	61.53913043	6.5
+mass13327	3	1038.205404	7033	0.001048757	0	0	-0.213200716	0.444444444	Peripheral nodes	metabolite	CHNOP	C27H35O16NP	Lignin	-0.185185185	65.57777778	11.5
+mass13132	1	0	0	0.001157115	0	3	-1.027079861	0	Peripheral nodes	metabolite	CHO	C23H36O21	Carbohydrate	0.260869565	52.86521739	6
+mass13130	4	2428.621688	67183	0.001266484	0.5	1	1.03797547	0	Peripheral nodes	metabolite	CHO	C30H32O16	Lignin	0	60.3	15
+mass13107	3	243	1891	0.025609605	0.333333333	3	-0.509619779	0	Peripheral nodes	metabolite	CHNOP	C23H37O18NP	Carbohydrate	-0.130434783	64.0173913	6.5
+mass13104	4	2960.445036	76540	0.037381907	0.166666667	1	-0.315905578	0.625	Connectors	metabolite	CHNOP	C26H33O16NP	Lignin	-0.115384615	63.58846154	11.5
+mass13072	1	0	0	0	0	27	0	0	Peripheral nodes	metabolite	CHNOP	C24H39O17NP	Carbohydrate	-0.291666667	68.6125	6.5
+mass13069	8	1662.280805	44445	0.06584715	0.107142857	3	0.525300387	0.21875	Peripheral nodes	metabolite	CHNOP	C27H35O15NP	Lignin	-0.259259259	67.68888889	11.5
+mass13067	3	2351.039676	61396	0.009339354	0	3	-0.76834982	0.444444444	Peripheral nodes	metabolite	CHOS	C31H32O13S	Lignin	-0.129032258	63.97741935	16
+mass13027	6	1.034615385	10	0.0585255	0.733333333	3	0.266570346	0	Peripheral nodes	metabolite	CHO	C31H30O15	Lignin	0	60.3	17
+mass13022	4	2428.621688	67183	0.001266484	0.5	1	1.03797547	0	Peripheral nodes	metabolite	CHO	C30H26O16	Lignin	0.2	54.6	18
+mass12944	2	460.8362193	2219	4.80E-05	0	1	-0.992846101	0.5	Peripheral nodes	metabolite	CHO	C26H36O18	Tannin	0	60.3	9
+mass12862	7	816.8609349	9925	0.063018614	0.523809524	3	0.266570346	0.244897959	Peripheral nodes	metabolite	CHO	C29H26O16	Lignin	0.206896552	54.40344828	17
+mass12735	11	5277.642882	133595	0.086662232	0	2	1.732442985	0.628099174	Connectors	metabolite	CHNOP	C24H29O16NP	Tannin	0.041666667	59.1125	11.5
+mass12690	4	728.6716792	3632	0.032795801	0.333333333	1	0.361034946	0.375	Peripheral nodes	metabolite	CHO	C29H26O15	Lignin	0.137931034	56.36896552	17
+mass12637	1	0	0	0	0	27	0	0	Peripheral nodes	metabolite	CHO	C28H34O15	Lignin	-0.142857143	64.37142857	12
+mass12603	2	0	0	3.38E-04	1	0	-0.213200716	0	Peripheral nodes	metabolite	CHO	C25H36O17	Tannin	-0.08	62.58	8
+mass12598	4	0.75	6	0.031657962	0	3	-0.250889737	0	Peripheral nodes	metabolite	CHO	C27H28O16	Lignin	0.148148148	56.07777778	14
+mass12563	1	0	0	0.003078144	0	3	-1.027079861	0	Peripheral nodes	metabolite	CHO	C25H34O17	Tannin	0	60.3	9
+mass12557	2	431.190873	2993	0.001668464	0	1	-0.315905578	0	Peripheral nodes	metabolite	CHO	C27H26O16	Lignin	0.222222222	53.96666667	15
+mass12522	6	824.4533855	5897	2.88E-05	0.066666667	1	2.391856517	0	Peripheral nodes	metabolite	CHO	C29H32O14	Lignin	-0.137931034	64.23103448	14
+mass12519	4	0.75	6	0.031657962	0	3	-0.250889737	0	Peripheral nodes	metabolite	CHO	C25H32O17	Tannin	0.08	58.02	10
+mass12514	6	1542.615369	34416	0.039740595	0	3	-0.250889737	0.5	Peripheral nodes	metabolite	CHO	C28H28O15	Lignin	0.071428571	58.26428571	15
+mass12501	3	80.33333333	3879	3.86E-09	0.666666667	10	0.5	0	Peripheral nodes	metabolite	CHNO	C22H37O18N	Carbohydrate	0.090909091	57.70909091	5
+mass12430	1	0	0	1.26E-04	0	0	-0.852802865	0	Peripheral nodes	metabolite	CHO	C26H32O16	Lignin	0	60.3	11
+mass12428	6	1.034615385	10	0.0585255	0.733333333	3	0.266570346	0	Peripheral nodes	metabolite	CHO	C22H32O19	Tannin	0.272727273	52.52727273	7
+mass12423	12	4382.481456	126880	0.202056077	0.181818182	9	0.342893553	0.541666667	Peripheral nodes	metabolite	CHO	C28H24O15	Lignin	0.214285714	54.19285714	17
+mass12376	3	482.4942778	3556	5.05E-04	0.333333333	1	0.361034946	0	Peripheral nodes	metabolite	CHO	C28H22O15	Cond Hydrocarbon	0.285714286	52.15714286	18
+mass12333	1	0	0	0.001607767	0	1	-0.992846101	0	Peripheral nodes	metabolite	CHO	C26H28O16	Lignin	0.153846154	55.91538462	13
+mass12280	17	2460.460575	48760	0.111088837	0.235294118	3	3.112600801	0	Module hubs	metabolite	CHO	C27H44O14	Protein	-0.592592593	77.18888889	6
+mass11858	1	0	0	0	0	17	0	0	Peripheral nodes	metabolite	CHO	C29H44O11	Protein	-0.75862069	81.92068966	8
+mass11855	1	0	0	0	0	25	0	0	Peripheral nodes	metabolite	CHO	C28H40O12	Lignin	-0.571428571	76.58571429	9
+mass11801	1	0	0	0	0	26	0	0	Peripheral nodes	metabolite	CHO	C28H38O12	Lignin	-0.5	74.55	10
+mass11746	5	302.6230769	5151	2.47E-06	0.1	4	2.787961132	0	Module hubs	metabolite	CHO	C29H40O11	Lignin	-0.620689655	77.98965517	10
+mass11733	1	0	0	0	0	35	0	0	Peripheral nodes	metabolite	CHO	C23H32O16	Tannin	0	60.3	8
+mass11663	1	0	0	2.97E-07	0	4	-0.929320377	0	Peripheral nodes	metabolite	CHO	C29H38O11	Lignin	-0.551724138	76.02413793	11
+mass11395	3	725	5042	7.81E-07	0	4	0.929320377	0	Peripheral nodes	metabolite	CHO	C28H40O11	Lignin	-0.642857143	78.62142857	9
+mass11180	1	0	0	0	0	37	0	0	Peripheral nodes	metabolite	CHOS	C27H26O10S	Lignin	-0.148148148	64.52222222	15
+mass10886	2	388.2859925	2690	6.30E-05	0	0	-0.213200716	0	Peripheral nodes	metabolite	CHO	C25H34O12	Lignin	-0.4	71.7	9
+mass10844	1	0	0	0.01335231	0	3	-1.027079861	0	Peripheral nodes	metabolite	CHNO	C20H31O15N	Carbohydrate	0.1	57.45	6
+mass10828	3	322.8172409	2101	6.47E-06	0	5	-0.478451317	0	Peripheral nodes	metabolite	CHO	C26H36O11	Lignin	-0.538461538	75.64615385	9
+mass10819	2	0	0	1.45E-06	1	5	-0.956902634	0	Peripheral nodes	metabolite	CHO	C25H32O12	Lignin	-0.32	69.42	10
+mass10770	2	243	1682	9.52E-08	0	4	0	0	Peripheral nodes	metabolite	CHO	C28H42O9	Protein	-0.857142857	84.72857143	8
+mass10730	9	685.955142	27340	0.215321217	0.333333333	9	0.932989435	0	Peripheral nodes	metabolite	CHO	C23H22O14	Lignin	0.260869565	52.86521739	13
+mass10691	1	0	0	2.84E-07	0	4	-0.929320377	0	Peripheral nodes	metabolite	CHO	C28H40O9	Lignin	-0.785714286	82.69285714	9
+mass10687	4	899.8544464	7898	4.35E-08	0	4	0.929320377	0.375	Peripheral nodes	metabolite	CHO	C27H36O10	Lignin	-0.592592593	77.18888889	10
+mass10679	2	93.68784756	8754	2.99E-08	0	5	-0.956902634	0	Peripheral nodes	metabolite	CHO	C26H32O11	Lignin	-0.384615385	71.26153846	11
+mass10667	1	0	0	4.88E-04	0	1	-0.992846101	0	Peripheral nodes	metabolite	CHO	C24H24O13	Lignin	0.083333333	57.925	13
+mass10634	3	569.79806	3220	3.44E-09	0	7	1.118033989	0	Peripheral nodes	metabolite	CHO	C29H42O8	Lignin	-0.896551724	85.85172414	9
+mass10630	1	0	0	1.73E-06	0	6	-0.945905303	0	Peripheral nodes	metabolite	CHO	C28H38O9	Lignin	-0.714285714	80.65714286	10
+mass10624	2	0	0	0	1	12	0	0	Peripheral nodes	metabolite	CHO	C27H34O10	Lignin	-0.518518519	75.07777778	11
+mass10617	3	25.68495832	2922	9.85E-09	0.333333333	5	-0.478451317	0	Peripheral nodes	metabolite	CHO	C26H30O11	Lignin	-0.307692308	69.06923077	12
+mass10604	3	244.0428571	5527	0.017454171	0	9	-0.837298211	0	Peripheral nodes	metabolite	CHO	C24H22O13	Lignin	0.166666667	55.55	14
+mass10586	3	80.33333333	3879	3.86E-09	0.666666667	10	0.5	0	Peripheral nodes	metabolite	CHNO	C18H31O16N	Carbohydrate	0.222222222	53.96666667	4
+mass10532	3	608.8514696	3074	2.08E-04	0	0	0.426401433	0	Peripheral nodes	metabolite	CHOSP	C25H40O7SP	Lipid	-1.16	93.36	6.5
+mass10483	3	725	13643	0.003682787	0	2	0.331744401	0	Peripheral nodes	metabolite	CHO	C25H22O12	Lignin	0.08	58.02	15
+mass10422	3	485	2383	0.004059172	0	1	0.361034946	0	Peripheral nodes	metabolite	CHOS	C26H24O9S	Lignin	-0.153846154	64.68461538	15
+mass10420	5	3476.225247	68656	0.009626988	0	3	-0.509619779	0.48	Peripheral nodes	metabolite	CHO	C36H16O4	Cond Hydrocarbon	-0.222222222	66.63333333	29
+mass10396	1	0	0	1.49E-05	0	0	-0.852802865	0	Peripheral nodes	metabolite	CHO	C24H46O11	Protein	-1	88.8	2
+mass10302	3	294.4901682	2728	4.34E-05	0	1	0.361034946	0	Peripheral nodes	metabolite	CHOS	C28H12O8S	Cond Hydrocarbon	0.214285714	54.19285714	23
+mass10234	1	0	0	0	0	24	0	0	Peripheral nodes	metabolite	CHO	C18H32O16	Carbohydrate	0	60.3	3
+mass9936	4	1099.640945	6831	2.02E-07	0.166666667	7	2.236067977	0	Peripheral nodes	metabolite	CHO	C27H40O8	Lignin	-0.888888889	85.63333333	8
+mass9925	1	0	0	5.23E-09	0	4	-0.929320377	0	Peripheral nodes	metabolite	CHO	C25H32O10	Lignin	-0.48	73.98	10
+mass9924	15	1520.620082	14697	0.098900369	0.2	3	2.336410677	0.124444444	Peripheral nodes	metabolite	CHNO	C20H32O12N2	Amino Sugar	-0.1	63.15	6
+mass9909	3	245.4938375	5624	0.038224148	0	9	-0.837298211	0	Peripheral nodes	metabolite	CHO	C23H24O12	Lignin	0	60.3	12
+mass9873	10	2577.65788	27176	1.44E-05	0.088888889	6	3.561055258	0	Module hubs	metabolite	CHO	C27H38O8	Lignin	-0.814814815	83.52222222	9
+mass9869	1	0	0	0	0	33	0	0	Peripheral nodes	metabolite	CHO	C26H34O9	Lignin	-0.615384615	77.83846154	10
+mass9862	1	0	0	6.22E-09	0	5	-1.435353951	0	Peripheral nodes	metabolite	CHO	C25H30O10	Lignin	-0.4	71.7	11
+mass9853	5	76.04399375	1155	0.095727966	0.5	9	-0.247202329	0	Peripheral nodes	metabolite	CHO	C24H26O11	Lignin	-0.166666667	65.05	12
+mass9851	6	9.52749748	158	0.058922424	0.733333333	3	0.266570346	0	Peripheral nodes	metabolite	CHO	C31H22O6	Cond Hydrocarbon	-0.322580645	69.49354839	21
+mass9799	3	3	3	0	0.333333333	11	1.118033989	0	Peripheral nodes	metabolite	CHO	C23H36O11	Protein	-0.608695652	77.64782609	6
+mass9795	1	0	0	0	0	12	-1.414213562	0	Peripheral nodes	metabolite	CHO	C26H32O9	Lignin	-0.538461538	75.64615385	11
+mass9793	1	0	0	6.38E-10	0	4	-0.929320377	0	Peripheral nodes	metabolite	CHNO	C35H24ON2	Cond Hydrocarbon	-0.457142857	73.32857143	25
+mass9725	1	0	0	5.22E-06	0	1	-0.992846101	0	Peripheral nodes	metabolite	CHNO	C21H30O11N2	Lignin	-0.095238095	63.01428571	8
+mass9708	6	28.94092331	1614	0.14651656	0.6	9	0.047845612	0	Peripheral nodes	metabolite	CHO	C23H18O12	Cond Hydrocarbon	0.260869565	52.86521739	15
+mass9591	6	1872.262776	53134	7.93E-07	0.066666667	5	0.956902634	0	Peripheral nodes	metabolite	CHO	C24H34O10	Lignin	-0.583333333	76.925	8
+mass9521	3	308.3962579	2725	2.36E-06	0	4	0.929320377	0	Peripheral nodes	metabolite	CHO	C25H36O9	Lignin	-0.72	80.82	8
+mass9515	7	4165.152483	96617	8.46E-06	0.333333333	5	1.435353951	0	Peripheral nodes	metabolite	CHO	C24H32O10	Lignin	-0.5	74.55	9
+mass9453	2	568.7426138	3126	1.39E-07	0	4	0	0	Peripheral nodes	metabolite	CHO	C25H34O9	Lignin	-0.64	78.54	9
+mass9439	4	3.166666667	7	8.06E-09	0.5	5	0	0	Peripheral nodes	metabolite	CHO	C23H26O11	Lignin	-0.173913043	65.25652174	11
+mass9399	2	0	0	4.89E-07	1	6	-0.445131907	0	Peripheral nodes	metabolite	CHO	C26H36O8	Lignin	-0.769230769	82.22307692	9
+mass9394	2	243	2456	5.31E-09	0	4	0	0	Peripheral nodes	metabolite	CHO	C25H32O9	Lignin	-0.56	76.26	10
+mass9272	1	0	0	0	0	8	-0.75	0	Peripheral nodes	metabolite	CHO	C17H28O15	Carbohydrate	0.117647059	56.94705882	4
+mass9182	7	804.4475099	54555	7.48E-08	0.476190476	5	1.435353951	0	Peripheral nodes	metabolite	CHO	C22H28O11	Lignin	-0.272727273	68.07272727	9
+mass9144	1	0	0	9.39E-08	0	4	-0.929320377	0	Peripheral nodes	metabolite	CHO	C24H34O9	Lignin	-0.666666667	79.3	8
+mass9128	3	97.70999966	2905	0.023368391	0	9	-0.837298211	0	Peripheral nodes	metabolite	CHO	C21H22O12	Lignin	0.095238095	57.58571429	11
+mass9106	6	1059.156678	5831	1.24E-04	0.066666667	0	2.34520788	0	Peripheral nodes	metabolite	CHO	C24H48O8	Protein	-1.333333333	98.3	1
+mass9100	2	656.2900152	4129	2.47E-08	0	7	0	0	Peripheral nodes	metabolite	CHO	C25H36O8	Lignin	-0.8	83.1	8
+mass9096	1	0	0	0	0	21	0	0	Peripheral nodes	metabolite	CHO	C24H32O9	Lignin	-0.583333333	76.925	9
+mass9049	1	0	0	0	0	34	0	0	Peripheral nodes	metabolite	CHO	C25H34O8	Lignin	-0.72	80.82	9
+mass9037	7	284.7050388	31170	2.89E-08	0.380952381	5	1.435353951	0	Peripheral nodes	metabolite	CHO	C23H26O10	Lignin	-0.260869565	67.73478261	11
+mass9028	6	1110.814142	22292	0.081238709	0.266666667	9	-0.247202329	0.277777778	Peripheral nodes	metabolite	CHO	C22H22O11	Lignin	0	60.3	12
+mass8973	1	0	0	0	0	21	0	0	Peripheral nodes	metabolite	CHO	C24H28O9	Lignin	-0.416666667	72.175	11
+mass8955	2	128.9125518	7324	0.049304503	0	9	-1.132346152	0	Peripheral nodes	metabolite	CHO	C22H20O11	Lignin	0.090909091	57.70909091	13
+mass8874	7	236.4917552	6849	0.148534613	0.428571429	9	0.047845612	0.244897959	Peripheral nodes	metabolite	CHO	C22H18O11	Lignin	0.181818182	55.11818182	14
+mass8841	4	1057.926679	6609	1.61E-04	0	0	1.066003582	0	Peripheral nodes	metabolite	CHNO	C19H23O12N	Lignin	0.210526316	54.3	9
+mass8820	1	0	0	1.53E-06	0	4	-0.929320377	0	Peripheral nodes	metabolite	CHO	C22H32O10	Lignin	-0.545454545	75.84545455	7
+mass8812	1	0	0	0	0	22	0	0	Peripheral nodes	metabolite	CHO	C21H28O11	Lignin	-0.285714286	68.44285714	8
+mass8795	12	2349.931998	54532	0.282174016	0.333333333	9	1.523085318	0.152777778	Peripheral nodes	metabolite	CHO	C19H20O13	Tannin	0.315789474	51.3	10
+mass8745	3	233.6067766	1047	1.48E-06	0.333333333	5	-0.478451317	0	Peripheral nodes	metabolite	CHO	C23H34O9	Lignin	-0.695652174	80.12608696	7
+mass8737	2	0.2	1	1.95E-07	0	5	-0.956902634	0	Peripheral nodes	metabolite	CHO	C22H30O10	Lignin	-0.454545455	73.25454545	8
+mass8728	3	485	3643	0.003315299	0	3	-0.509619779	0	Peripheral nodes	metabolite	CHNO	C20H26O10N2	Lignin	0	60.3	9
+mass8710	12	756.0898529	25596	0.29911902	0.378787879	9	1.818133259	0	Peripheral nodes	metabolite	CHO	C19H18O13	Tannin	0.421052632	48.3	11
+mass8684	3	51.49016817	1184	4.91E-05	0.666666667	1	0.361034946	0	Peripheral nodes	metabolite	CHNO	C21H27O10N	Lignin	-0.19047619	65.72857143	9
+mass8671	2	339.0000808	3925	2.60E-08	0	7	-1.118033989	0.5	Peripheral nodes	metabolite	CHO	C24H36O8	Protein	-0.833333333	84.05	7
+mass8637	8	78.09689793	3435	0.239966541	0.642857143	9	0.637941494	0	Peripheral nodes	metabolite	CHO	C20H20O12	Lignin	0.2	54.6	11
+mass8628	2	3.25534188	18	0.042002724	0	9	-1.132346152	0	Peripheral nodes	metabolite	CHO	C19H16O13	Tannin	0.526315789	45.3	12
+mass8591	2	243	2073	1.76E-06	0	6	-0.445131907	0	Peripheral nodes	metabolite	CHO	C24H34O8	Lignin	-0.75	81.675	8
+mass8583	3	2	2	0	0.333333333	12	1.414213562	0	Peripheral nodes	metabolite	CHO	C23H30O9	Lignin	-0.52173913	75.16956522	9
+mass8574	4	2.083333333	5	7.37E-09	0.666666667	5	0	0	Peripheral nodes	metabolite	CHO	C22H26O10	Lignin	-0.272727273	68.07272727	10
+mass8558	4	96.76056729	3801	0.081415859	0.333333333	9	-0.54225027	0	Peripheral nodes	metabolite	CHO	C20H18O12	Lignin	0.3	51.75	12
+mass8513	2	243	1265	4.20E-10	0	7	0	0	Peripheral nodes	metabolite	CHO	C25H36O7	Lignin	-0.88	85.38	8
+mass8508	1	0	0	2.11E-07	0	6	-0.945905303	0	Peripheral nodes	metabolite	CHO	C24H32O8	Lignin	-0.666666667	79.3	9
+mass8499	8	2459.928743	93286	2.20E-07	0.214285714	5	1.913805268	0	Peripheral nodes	metabolite	CHO	C23H28O9	Lignin	-0.434782609	72.69130435	10
+mass8486	1	0	0	0	0	14	0	0	Peripheral nodes	metabolite	CHO	C21H20O11	Lignin	0.095238095	57.58571429	12
+mass8461	1	0	0	0.003219508	0	3	-1.027079861	0	Peripheral nodes	metabolite	CHNO	C18H25O12N	Tannin	0.111111111	57.13333333	7
+mass8445	4	1063.424961	8102	1.27E-05	0	4	0	0.625	Connectors	metabolite	CHO	C26H38O6	Lignin	-1	88.8	8
+mass8288	1	0	0	1.49E-04	0	0	-0.852802865	0	Peripheral nodes	metabolite	CHNO	C19H26O10N2	Lignin	0	60.3	8
+mass8162	3	0	0	1.81E-06	1	5	-0.478451317	0	Peripheral nodes	metabolite	CHO	C22H30O9	Lignin	-0.545454545	75.84545455	8
+mass8155	4	815.0825451	31775	5.41E-07	0.333333333	5	0	0	Peripheral nodes	metabolite	CHO	C21H26O10	Lignin	-0.285714286	68.44285714	9
+mass8092	5	147.7463002	11676	4.78E-08	0.7	5	0.478451317	0	Peripheral nodes	metabolite	CHO	C21H24O10	Lignin	-0.19047619	65.72857143	10
+mass8085	1	0	0	0	0	32	0	0	Peripheral nodes	metabolite	CHO	C20H20O11	Lignin	0.1	57.45	11
+mass8035	3	197.4188467	3383	1.27E-05	0.333333333	6	0.055641488	0	Peripheral nodes	metabolite	CHO	C24H34O7	Lignin	-0.833333333	84.05	8
+mass8009	11	160.8345264	4445	0.29484501	0.436363636	9	1.523085318	0	Peripheral nodes	metabolite	CHO	C20H18O11	Lignin	0.2	54.6	12
+mass7957	1	0	0	1.82E-07	0	6	-0.945905303	0	Peripheral nodes	metabolite	CHO	C24H32O7	Lignin	-0.75	81.675	9
+mass7954	1	0	0	0	0	11	-1.118033989	0	Peripheral nodes	metabolite	CHO	C20H32O10	Protein	-0.6	77.4	5
+mass7948	5	2849.502917	37485	8.94E-05	0.2	6	0.556414884	0.32	Peripheral nodes	metabolite	CHO	C23H28O8	Lignin	-0.52173913	75.16956522	10
+mass7944	2	91.21774304	3847	2.68E-08	0	5	-0.956902634	0	Peripheral nodes	metabolite	CHO	C19H28O11	Lignin	-0.315789474	69.3	6
+mass7929	5	22.66637537	942	0.101937346	0.7	9	-0.247202329	0	Peripheral nodes	metabolite	CHO	C21H20O10	Lignin	0	60.3	12
+mass7922	7	118.7436999	7010	0.141306573	0.19047619	9	0.342893553	0	Peripheral nodes	metabolite	CHO	C20H16O11	Lignin	0.3	51.75	13
+mass7905	1	0	0	6.60E-08	0	0	-0.852802865	0	Peripheral nodes	metabolite	CHNO	C27H29O4N	Lignin	-0.666666667	79.3	14
+mass7872	1	0	0	1.81E-05	0	0	-0.852802865	0	Peripheral nodes	metabolite	CHO	C24H30O7	Lignin	-0.666666667	79.3	10
+mass7870	2	0	0	0	1	11	0	0	Peripheral nodes	metabolite	CHO	C20H30O10	Protein	-0.5	74.55	6
+mass7847	3	328.6719495	11248	0.03361724	0.333333333	2	-0.36860489	0.444444444	Peripheral nodes	metabolite	CHO	C21H18O10	Lignin	0.095238095	57.58571429	13
+mass7761	5	172.7290268	5815	0.102733747	0.4	9	-0.247202329	0	Peripheral nodes	metabolite	CHNO	C31H12ON2	Cond Hydrocarbon	-0.129032258	63.97741935	27
+mass7754	9	305.2536276	9121	0.229369097	0.416666667	9	0.932989435	0	Peripheral nodes	metabolite	CHO	C17H16O13	Tannin	0.588235294	43.53529412	10
+mass7716	5	854.9900493	4402	2.09E-04	0	0	1.705605731	0	Peripheral nodes	metabolite	CHNO	C18H21O11N	Lignin	0.222222222	53.96666667	9
+mass7692	2	80.33333333	3879	3.40E-09	0	10	-2	0	Peripheral nodes	metabolite	CHOS	C29H30OS	Unsat Hydrocarbon	-0.896551724	85.85172414	15
+mass7689	1	0	0	5.63E-08	0	5	-1.435353951	0	Peripheral nodes	metabolite	CHO	C21H30O9	Lignin	-0.571428571	76.58571429	7
+mass7679	4	594.8357709	35095	2.30E-07	0.333333333	5	0	0	Peripheral nodes	metabolite	CHO	C20H26O10	Lignin	-0.3	68.85	8
+mass7608	2	840.2832023	18611	0.013960936	0	3	-0.76834982	0	Peripheral nodes	metabolite	CHNO	C18H19O11N	Lignin	0.333333333	50.8	10
+mass7593	1	0	0	1.14E-08	0	4	-0.929320377	0	Peripheral nodes	metabolite	CHO	C23H36O7	Protein	-0.956521739	87.56086957	6
+mass7580	6	164.3586337	1315	3.60E-06	0.4	5	0.956902634	0	Peripheral nodes	metabolite	CHO	C21H28O9	Lignin	-0.476190476	73.87142857	8
+mass7553	10	430.141768	14144	0.24939769	0.4	9	1.228037376	0	Peripheral nodes	metabolite	CHO	C18H16O12	Tannin	0.444444444	47.63333333	11
+mass7522	2	51.49016817	1184	4.28E-05	0	1	-0.315905578	0	Peripheral nodes	metabolite	CHNO	C19H21O10N	Lignin	0.105263158	57.3	10
+mass7510	1	0	0	2.43E-08	0	7	-1.118033989	0	Peripheral nodes	metabolite	CHO	C23H34O7	Lignin	-0.869565217	85.0826087	7
+mass7487	1	0	0	3.98E-04	0	3	-1.027079861	0	Peripheral nodes	metabolite	CHNO	C19H22O9N2	Lignin	0.105263158	57.3	10
+mass7475	5	246.0579751	10760	0.098447193	0.2	9	-0.247202329	0	Peripheral nodes	metabolite	CHO	C19H18O11	Lignin	0.210526316	54.3	11
+mass7425	3	0.583333333	2	1.04E-06	0.666666667	6	0.055641488	0	Peripheral nodes	metabolite	CHO	C23H32O7	Lignin	-0.782608696	82.60434783	8
+mass7417	2	0	0	0	1	12	0	0	Peripheral nodes	metabolite	CHO	C22H28O8	Lignin	-0.545454545	75.84545455	9
+mass7398	1	0	0	0	0	32	0	0	Peripheral nodes	metabolite	CHO	C20H20O10	Lignin	0	60.3	11
+mass7392	3	0	0	0.069531089	1	9	-0.837298211	0	Peripheral nodes	metabolite	CHO	C19H16O11	Lignin	0.315789474	51.3	12
+mass7339	1	0	0	1.73E-06	0	6	-0.945905303	0	Peripheral nodes	metabolite	CHO	C23H30O7	Lignin	-0.695652174	80.12608696	9
+mass7330	2	0	0	3.40E-09	1	5	-0.956902634	0	Peripheral nodes	metabolite	CHO	C22H26O8	Lignin	-0.454545455	73.25454545	10
+mass7286	5	1042.951165	12318	0.027293547	0	3	0.007840304	0	Peripheral nodes	metabolite	CHNO	C17H23O11N	Lignin	0.117647059	56.94705882	7
+mass7193	4	244.8333333	1053	4.68E-07	0.166666667	5	0	0	Peripheral nodes	metabolite	CHO	C19H26O10	Lignin	-0.315789474	69.3	7
+mass7137	7	7301.181078	126224	4.92E-05	0	5	-0.956902634	0.571428571	Peripheral nodes	metabolite	CHO	C20H28O9	Lignin	-0.5	74.55	7
+mass7120	1	0	0	0.004594347	0	9	-1.427394093	0	Peripheral nodes	metabolite	CHO	C18H20O11	Lignin	0.111111111	57.13333333	9
+mass7077	2	161.1490704	410	3.54E-09	0	7	0	0	Peripheral nodes	metabolite	CHO	C21H30O8	Lignin	-0.666666667	79.3	7
+mass7071	7	3640.320086	117279	8.28E-07	0.142857143	5	1.435353951	0	Peripheral nodes	metabolite	CHO	C20H26O9	Lignin	-0.4	71.7	8
+mass7052	2	1	1	0	0	15	0	0	Peripheral nodes	metabolite	CHNOS	C24H14O3N2S	Cond Hydrocarbon	0	60.3	19
+mass7013	3	29.39527079	862	2.18E-06	0.666666667	6	0.055641488	0	Peripheral nodes	metabolite	CHO	C22H32O7	Lignin	-0.818181818	83.61818182	7
+mass6999	8	840.785009	32136	5.18E-08	0.357142857	5	1.913805268	0	Peripheral nodes	metabolite	CHO	C20H24O9	Lignin	-0.3	68.85	9
+mass6985	1	0	0	0	0	23	0	0	Peripheral nodes	metabolite	CHO	C18H16O11	Lignin	0.333333333	50.8	11
+mass6938	3	484	4640	1.24E-05	0.333333333	6	0.055641488	0	Peripheral nodes	metabolite	CHO	C22H30O7	Lignin	-0.727272727	81.02727273	8
+mass6931	5	1118.889205	6823	0.001235949	0	0	1.066003582	0.32	Peripheral nodes	metabolite	CHNO	C20H26O7N2	Lignin	-0.3	68.85	9
+mass6923	3	32.36666667	142	9.80E-09	0	5	-0.478451317	0	Peripheral nodes	metabolite	CHNO	C19H22O8N2	Lignin	0	60.3	10
+mass6920	6	413.5266695	29226	2.09E-08	0.466666667	5	0.956902634	0	Peripheral nodes	metabolite	CHO	C20H22O9	Lignin	-0.2	66	10
+mass6911	7	445.8716211	10789	0.119749294	0.333333333	9	0.342893553	0	Peripheral nodes	metabolite	CHO	C19H18O10	Lignin	0.105263158	57.3	11
+mass6866	8	1662.280805	44445	0.06584715	0.107142857	3	0.525300387	0.21875	Peripheral nodes	metabolite	CHNO	C19H19O9N	Lignin	0.105263158	57.3	11
+mass6853	4	233.2762559	2780	3.71E-06	0.333333333	6	0.556414884	0	Peripheral nodes	metabolite	CHO	C23H32O6	Lignin	-0.869565217	85.0826087	8
+mass6846	2	243	2321	1.52E-06	0	6	-0.445131907	0	Peripheral nodes	metabolite	CHO	C22H28O7	Lignin	-0.636363636	78.43636364	9
+mass6842	3	334.217743	7759	2.72E-08	0	5	-0.478451317	0	Peripheral nodes	metabolite	CHNO	C20H24O7N2	Lignin	-0.2	66	10
+mass6839	3	714.9759472	4651	1.11E-06	0.333333333	4	0.929320377	0	Peripheral nodes	metabolite	CHO	C21H24O8	Lignin	-0.380952381	71.15714286	10
+mass6837	1	0	0	3.46E-06	0	1	-0.992846101	0	Peripheral nodes	metabolite	CHNO	C16H24O10N2	Amino Sugar	0.125	56.7375	6
+mass6836	1	0	0	6.35E-06	0	1	-0.992846101	0	Peripheral nodes	metabolite	CHO	C17H24O11	Lignin	-0.117647059	63.65294118	6
+mass6821	13	884.533165	23433	0.312485416	0.346153846	9	2.1131812	0	Peripheral nodes	metabolite	CHO	C19H16O10	Lignin	0.210526316	54.3	12
+mass6783	2	41.57301587	280	6.87E-05	0	0	-0.213200716	0	Peripheral nodes	metabolite	CHNO	C16H21O11N	Tannin	0.25	53.175	7
+mass6781	8	1662.280805	44445	0.06584715	0.107142857	3	0.525300387	0.21875	Peripheral nodes	metabolite	CHNO	C19H17O9N	Lignin	0.210526316	54.3	12
+mass6765	5	1681.830073	9797	2.73E-06	0.4	6	0.556414884	0.32	Peripheral nodes	metabolite	CHO	C23H30O6	Lignin	-0.782608696	82.60434783	9
+mass6762	3	3	3	0	0.333333333	11	1.118033989	0	Peripheral nodes	metabolite	CHO	C19H30O9	Protein	-0.631578947	78.3	5
+mass6731	3	5.242857143	14	0.037880552	0	9	-0.837298211	0	Peripheral nodes	metabolite	CHNO	C29H10ON2	Cond Hydrocarbon	-0.068965517	62.26551724	26
+mass6730	12	515.0791114	23737	0.208148599	0.196969697	9	1.818133259	0	Peripheral nodes	metabolite	CHO	C19H14O10	Cond Hydrocarbon	0.315789474	51.3	13
+mass6707	5	749.975691	4819	3.71E-04	0.1	0	1.066003582	0.32	Peripheral nodes	metabolite	CHNO	C26H27O3N	Unsat Hydrocarbon	-0.692307692	80.03076923	14
+mass6687	1	0	0	4.36E-05	0	0	-0.852802865	0	Peripheral nodes	metabolite	CHNO	C16H19O11N	Tannin	0.375	49.6125	8
+mass6663	3	268.7925942	1494	9.69E-07	0	5	-0.478451317	0	Peripheral nodes	metabolite	CHO	C19H28O9	Lignin	-0.526315789	75.3	6
+mass6652	1	0	0	0	0	22	0	0	Peripheral nodes	metabolite	CHO	C18H24O10	Lignin	-0.222222222	66.63333333	7
+mass6635	5	90.71489826	4275	0.085273736	0.2	9	-0.247202329	0	Peripheral nodes	metabolite	CHO	C16H16O12	Tannin	0.5	46.05	9
+mass6598	5	2623.718334	43274	0.026785736	0.1	3	0.007840304	0	Peripheral nodes	metabolite	CHNO	C17H21O10N	Lignin	0.117647059	56.94705882	8
+mass6568	7	5940.961497	130621	8.81E-06	0.238095238	5	0.478451317	0.448979592	Peripheral nodes	metabolite	CHO	C19H26O9	Lignin	-0.421052632	72.3	7
+mass6557	4	1.666666667	4	2.21E-08	0.666666667	5	0	0	Peripheral nodes	metabolite	CHO	C18H22O10	Lignin	-0.111111111	63.46666667	8
+mass6548	3	50.47466283	1723	0.03766212	0.666666667	9	-1.132346152	0.444444444	Peripheral nodes	metabolite	CHO	C17H18O11	Lignin	0.235294118	53.59411765	9
+mass6543	2	243	4549	4.49E-04	0	2	-0.36860489	0	Peripheral nodes	metabolite	CHO	C20H14O9	Cond Hydrocarbon	0.2	54.6	14
+mass6539	2	0	0	0.037818459	1	9	-1.132346152	0	Peripheral nodes	metabolite	CHO	C16H14O12	Tannin	0.625	42.4875	10
+mass6509	4	1713.870147	9058	2.25E-04	0.166666667	0	1.066003582	0	Peripheral nodes	metabolite	CHNO	C18H23O9N	Lignin	-0.111111111	63.46666667	8
+mass6502	6	346.9561054	17101	0.00794376	0	2	2.432792277	0	Peripheral nodes	metabolite	CHOSP	C15H26O8SP	Protein	-0.866666667	85	3.5
+mass6500	9	4755.243306	118223	0.047963344	0.111111111	3	0.784030428	0.197530864	Peripheral nodes	metabolite	CHNO	C17H19O10N	Lignin	0.235294118	53.59411765	9
+mass6486	2	0	0	1.97E-07	1	7	0	0	Peripheral nodes	metabolite	CHO	C21H32O7	Protein	-0.857142857	84.72857143	6
+mass6478	6	3164.182617	88431	2.50E-06	0.2	5	0.956902634	0	Peripheral nodes	metabolite	CHO	C20H28O8	Lignin	-0.6	77.4	7
+mass6451	12	495.8621573	13433	0.238899157	0.303030303	9	1.523085318	0.152777778	Peripheral nodes	metabolite	CHO	C17H16O11	Lignin	0.352941176	50.24117647	10
+mass6395	7	3739.295559	119385	2.99E-06	0.285714286	5	1.435353951	0	Peripheral nodes	metabolite	CHO	C20H26O8	Lignin	-0.5	74.55	8
+mass6378	1	0	0	0	0	14	0	0	Peripheral nodes	metabolite	CHO	C18H18O10	Lignin	0.111111111	57.13333333	10
+mass6318	3	121	2071	2.03E-06	0.666666667	6	0.055641488	0	Peripheral nodes	metabolite	CHO	C21H28O7	Lignin	-0.666666667	79.3	8
+mass6311	2	243	1329	1.51E-04	0	0	-0.213200716	0	Peripheral nodes	metabolite	CHNO	C19H24O7N2	Lignin	-0.210526316	66.3	9
+mass6288	6	98.06464669	5032	0.131438509	0.533333333	9	0.047845612	0	Peripheral nodes	metabolite	CHO	C18H16O10	Lignin	0.222222222	53.96666667	11
+mass6225	3	121	2071	2.03E-06	0.666666667	6	0.055641488	0	Peripheral nodes	metabolite	CHO	C21H26O7	Lignin	-0.571428571	76.58571429	9
+mass6208	1	0	0	0	0	20	0	0	Peripheral nodes	metabolite	CHNOS	C11H22O11N2S	Carbohydrate	0.727272727	39.57272727	2
+mass6206	2	243	1641	5.49E-07	0	0	-0.213200716	0	Peripheral nodes	metabolite	CHNOS	C25H14ON2S	Cond Hydrocarbon	-0.16	64.86	20
+mass6090	2	243	1421	0.001631335	0	1	-0.315905578	0	Peripheral nodes	metabolite	CHNO	C24H22O3N2	Unsat Hydrocarbon	-0.416666667	72.175	15
+mass6072	7	1528.2264	36255	0.029748338	0.142857143	2	1.032093693	0.571428571	Peripheral nodes	metabolite	CHNOS	C11H18O11N2S	Carbohydrate	1.090909091	29.20909091	4
+mass6003	2	0.75	2	0.021618619	0	9	-1.132346152	0	Peripheral nodes	metabolite	CHO	C16H16O11	Tannin	0.375	49.6125	9
+mass5841	1	0	0	4.88E-04	0	1	-0.992846101	0	Peripheral nodes	metabolite	CHOS	C21H16O5S	Cond Hydrocarbon	-0.19047619	65.72857143	14
+mass5747	2	1	1	0	0	14	0	0	Peripheral nodes	metabolite	CHNOS	C10H22O11N2S	Carbohydrate	0.8	37.5	1
+mass5641	6	365.9934511	6116	0.105275148	0.266666667	9	0.047845612	0	Peripheral nodes	metabolite	CHNOS	C10H20O11N2S	Carbohydrate	1	31.8	2
+mass5545	1	0	0	3.98E-04	0	3	-1.027079861	0	Peripheral nodes	metabolite	CHO	C15H18O11	Tannin	0.266666667	52.7	7
+mass5463	1	0	0	0	0	20	0	0	Peripheral nodes	metabolite	CHNOS	C11H20O10N2S	Carbohydrate	0.727272727	39.57272727	3
+mass5286	5	1004.868421	5768	0.013376335	0	1	1.03797547	0.32	Peripheral nodes	metabolite	CHOP	C14H24O9P	Amino Sugar	-0.785714286	82.69285714	3.5
+mass4933	5	148.6629693	4062	0.075445186	0.2	9	-0.54225027	0.32	Peripheral nodes	metabolite	CHNOS	C10H18O10N2S	Carbohydrate	1	31.8	3
+mass4392	1	0	0	0.001137995	0	2	-1.068954182	0	Peripheral nodes	metabolite	CHNOS	C9H18O10N2S	Carbohydrate	1.111111111	28.63333333	2
+mass4319	1	0	0	0	0	19	0	0	Peripheral nodes	metabolite	CHNOS	C10H20O9N2S	Carbohydrate	0.6	43.2	2
+mass4313	3	243	8305	0.009467914	0.333333333	2	0.331744401	0	Peripheral nodes	metabolite	CHNOS	C9H16O10N2S	Carbohydrate	1.333333333	22.3	3
+mass3765	1	0	0	0	0	19	0	0	Peripheral nodes	metabolite	CHNOS	C9H20O9N2S	Carbohydrate	0.666666667	41.3	1
+mass3603	1	0	0	5.40E-05	0	2	-1.068954182	0	Peripheral nodes	metabolite	CHNOS	C9H16O9N2S	Carbohydrate	1.111111111	28.63333333	3
+mass3186	1	0	0	0	0	23	0	0	Peripheral nodes	metabolite	CHNOS	C8H18O9N2S	Carbohydrate	1	31.8	1
+mass3091	5	609.716671	15249	0.047885027	0.2	2	1.032093693	0.32	Peripheral nodes	metabolite	CHNOS	C8H16O9N2S	Carbohydrate	1.25	24.675	2
+mass2748	2	243	1226	6.44E-06	0	1	-0.315905578	0	Peripheral nodes	metabolite	CHOSP	C13H8O5SP	Cond Hydrocarbon	-0.076923077	62.49230769	10.5
+mass2224	2	65.12814945	745	0.0188079	0	2	-1.068954182	0.5	Peripheral nodes	metabolite	CHO	C16H6O6	Cond Hydrocarbon	0.375	49.6125	14
+mass2022	1	0	0	4.43E-04	0	2	-1.068954182	0	Peripheral nodes	metabolite	CHNOS	C7H16O8N2S	Carbohydrate	1.142857143	27.72857143	1
+mass1935	1	0	0	0.002097902	0	9	-1.427394093	0	Peripheral nodes	metabolite	CHNOS	C7H14O8N2S	Carbohydrate	1.428571429	19.58571429	2
+mass570	7	5609.499769	132154	5.28E-05	0.095238095	1	1.714915993	0.448979592	Peripheral nodes	metabolite	CHNOS	C6H7O7NS	Other	2	3.3	4
+mass48	6	4998.567748	134510	3.27E-04	0.133333333	1	2.391856517	0	Peripheral nodes	metabolite	CHOSP	C9H2O2SP	Cond Hydrocarbon	-0.111111111	63.46666667	9.5
+micro1599	2	124.7486557	7338	0.011371156	0	2	-0.36860489	0	Peripheral nodes	d__Archaea	p__Thermoproteota	c__Nitrososphaeria	o__Nitrososphaerales	f__UBA183	g__BOG-1369	s__BOG-1369 sp003164815
+micro1582	6	1103.118276	11795	6.91E-04	0	0	1.705605731	0.277777778	Peripheral nodes	d__Archaea	p__Methanobacteriota	c__Methanobacteria	o__Methanobacteriales	f__Methanobacteriaceae	g__Methanobacterium_B	s__Methanobacterium_B sp003158115
+micro1580	2	0	0	1.25E-05	1	6	-0.445131907	0	Peripheral nodes	d__Archaea	p__Methanobacteriota	c__Methanobacteria	o__Methanobacteriales	f__Methanobacteriaceae	g__Methanobacterium_B	s__Methanobacterium_B sp003164415
+micro1552	3	367.7486557	10573	0.011537841	0	2	0.331744401	0	Peripheral nodes	d__Archaea	p__Halobacteriota	c__Methanosarcinia	o__Methanosarcinales	f__Methanosarcinaceae	g__Methanosarcina	s__Methanosarcina sp003164755
+micro1539	1	0	0	0	0	38	0	0	Peripheral nodes	d__Bacteria	p__Dormibacterota	c__Dormibacteria	o__UBA8260	f__UBA8260	g__UBA8260	s__UBA8260 sp003135255
+micro1305	1	0	0	8.31E-05	0	0	-0.852802865	0	Peripheral nodes	d__Bacteria	p__Actinobacteriota	c__Acidimicrobiia	o__Acidimicrobiales	f__RAAP-2	g__Bog-756	s__
+micro1301	2	0.65	3	0.009045493	0	3	-0.76834982	0	Peripheral nodes	d__Bacteria	p__Actinobacteriota	c__Acidimicrobiia	o__Acidimicrobiales	f__RAAP-2	g__Bog-756	s__
+micro1294	3	366.1762821	1820	0.007480789	0	1	-0.315905578	0.444444444	Peripheral nodes	d__Bacteria	p__Actinobacteriota	c__Acidimicrobiia	o__Acidimicrobiales	f__RAAP-2	g__Bog-473	s__
+micro1286	1	0	0	0	0	37	0	0	Peripheral nodes	d__Bacteria	p__Actinobacteriota	c__Acidimicrobiia	o__Acidimicrobiales	f__RAAP-2	g__Bog-473	s__
+micro1274	1	0	0	0	0	18	0	0	Peripheral nodes	d__Bacteria	p__Actinobacteriota	c__Acidimicrobiia	o__Acidimicrobiales	f__RAAP-2	g__RAAP-2	s__RAAP-2 sp003138895
+micro1272	2	0	0	0	1	13	0	0	Peripheral nodes	d__Bacteria	p__Actinobacteriota	c__Acidimicrobiia	o__Acidimicrobiales	f__RAAP-2	g__RAAP-2	s__RAAP-2 sp003133075
+micro1238	1	0	0	8.30E-05	0	0	-0.852802865	0	Peripheral nodes	d__Bacteria	p__Actinobacteriota	c__Acidimicrobiia	o__Acidimicrobiales	f__RAAP-2	g__RAAP-2	s__RAAP-2 sp003141095
+micro1186	2	0	0	0	1	13	0	0	Peripheral nodes	d__Bacteria	p__Eremiobacterota	c__Eremiobacteria	o__UBP12	f__UBA5184	g__Bog-1492	s__
+micro1185	1	0	0	0	0	18	0	0	Peripheral nodes	d__Bacteria	p__Eremiobacterota	c__Eremiobacteria	o__UBP12	f__UBA5184	g__Bog-1492	s__Bog-1492 sp003136655
+micro1094	1	0	0	0	0	36	0	0	Peripheral nodes	d__Bacteria	p__Planctomycetota	c__UBA11346	o__UBA11346	f__UBA11346	g__BOG-1363	s__BOG-1363 sp003136555
+micro1085	1	0	0	8.99E-04	0	1	-0.992846101	0	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Opitutales	f__	g__	s__
+micro1053	3	245.7486557	10569	0.011709486	0	2	0.331744401	0	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Pedosphaerales	f__Palsa-1400	g__	s__
+micro1051	1	0	0	1.16E-07	0	5	-1.435353951	0	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Pedosphaerales	f__Palsa-1400	g__	s__
+micro1048	1	0	0	0.001386789	0	2	-1.068954182	0	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Pedosphaerales	f__Palsa-1400	g__Palsa-1400	s__Palsa-1400 sp003138485
+micro1047	3	245.7486557	10569	0.011709486	0	2	0.331744401	0	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Pedosphaerales	f__Palsa-1400	g__Palsa-1400	s__
+micro1011	3	1	2	1.34E-09	0.333333333	10	0.5	0	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Pedosphaerales	f__Pedosphaeraceae	g__UBA11358	s__
+micro995	1	0	0	0	0	35	0	0	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Pedosphaerales	f__Pedosphaeraceae	g__UBA11358	s__
+micro994	3	1095.661816	9876	6.31E-06	0	4	0	0.444444444	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Pedosphaerales	f__Pedosphaeraceae	g__UBA11358	s__
+micro985	1	0	0	0	0	8	-0.75	0	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Pedosphaerales	f__Pedosphaeraceae	g__UBA11358	s__
+micro981	2	1	1	0	0	17	0	0	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Pedosphaerales	f__Pedosphaeraceae	g__UBA11358	s__
+micro975	1	0	0	3.64E-05	0	0	-0.852802865	0	Peripheral nodes	d__Bacteria	p__Verrucomicrobiota	c__Verrucomicrobiae	o__Pedosphaerales	f__Pedosphaeraceae	g__UBA11358	s__
+micro918	2	0.333333333	1	0.002814841	0	2	-0.36860489	0	Peripheral nodes	d__Bacteria	p__Bacteroidota	c__Bacteroidia	o__Chitinophagales	f__LD1	g__Bog-950	s__Bog-950 sp003165895
+micro866	4	2879.395894	16585	1.44E-06	0.166666667	7	0	0.625	Connectors	d__Bacteria	p__Bacteroidota	c__Bacteroidia	o__AKYH767	f__Palsa-948	g__	s__
+micro772	1	0	0	9.55E-04	0	2	-1.068954182	0	Peripheral nodes	d__Bacteria	p__Dependentiae	c__Babeliae	o__Babeliales	f__Babeliaceae	g__BOG-1370	s__BOG-1370 sp003165355
+micro762	1	0	0	0	0	34	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Bryobacterales	f__Bryobacteraceae	g__Solibacter	s__
+micro749	1	0	0	0	0	17	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Bryobacterales	f__Bryobacteraceae	g__	s__
+micro736	1	0	0	8.30E-05	0	0	-0.852802865	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Bryobacterales	f__Bryobacteraceae	g__BOG-224	s__BOG-224 sp003139735
+micro730	1	0	0	0	0	33	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Bryobacterales	f__Bryobacteraceae	g__Bog-159	s__
+micro729	1	0	0	0	0	38	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Bryobacterales	f__Bryobacteraceae	g__Bog-159	s__Bog-159 sp003166475
+micro710	7	3061.70441	61361	2.13E-07	0	5	0	0.612244898	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Bryobacterales	f__Bryobacteraceae	g__Bog-105	s__Bog-105 sp003169195
+micro659	1	0	0	0	0	15	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__
+micro651	1	0	0	0	0	16	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__
+micro619	1	0	0	0	0	31	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__Terracidiphilus sp003139795
+micro615	2	1	1	0	0	16	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__
+micro585	6	3659.185479	47866	6.91E-04	0	0	1.066003582	0.5	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__
+micro582	1	0	0	0	0	30	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__
+micro580	1	0	0	8.30E-05	0	0	-0.852802865	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__
+micro579	1	0	0	5.05E-11	0	7	-1.118033989	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__Terracidiphilus sp003161045
+micro569	2	723	4917	3.69E-05	0	0	-0.213200716	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__Terracidiphilus sp003167305
+micro559	1	0	0	0	0	29	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__
+micro558	1	0	0	0	0	31	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__Terracidiphilus sp003156235
+micro551	1	0	0	8.31E-05	0	0	-0.852802865	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Terracidiphilus	s__
+micro532	2	0	0	0	1	13	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Granulicella_A	s__
+micro523	5	5313.018051	136959	0.008438387	0.1	1	1.03797547	0.32	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Acidobacteriaceae	g__Palsa-288	s__Palsa-288 sp003162875
+micro506	1	0	0	0	0	28	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Koribacteraceae	g__Bog-209	s__Bog-209 sp003162935
+micro449	2	135.6618156	3160	6.21E-06	0	4	-0.929320377	0.5	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Koribacteraceae	g__TOLSYN	s__
+micro443	1	0	0	0	0	16	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Koribacteraceae	g__TOLSYN	s__
+micro442	1	0	0	0	0	26	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__Acidobacteriales	f__Koribacteraceae	g__TOLSYN	s__
+micro424	1	0	0	0	0	25	0	0	Peripheral nodes	d__Bacteria	p__Acidobacteriota	c__Acidobacteriae	o__UBA7540	f__UBA7540	g__Bog-366	s__
+micro324	4	961	23270	2.69E-08	0.166666667	10	0.5	0.375	Peripheral nodes	d__Bacteria	p__Myxococcota	c__Polyangia	o__Polyangiales	f__Polyangiaceae	g__	s__
+micro199	4	1078.396013	10639	6.63E-06	0.166666667	4	0.929320377	0.375	Peripheral nodes	d__Bacteria	p__Proteobacteria	c__Gammaproteobacteria	o__Steroidobacterales	f__Steroidobacteraceae	g__Bog-1198	s__Bog-1198 sp003164785
+micro196	1	0	0	0	0	28	0	0	Peripheral nodes	d__Bacteria	p__Proteobacteria	c__Gammaproteobacteria	o__Steroidobacterales	f__Steroidobacteraceae	g__Bog-1198	s__
+micro190	1	0	0	0	0	29	0	0	Peripheral nodes	d__Bacteria	p__Proteobacteria	c__Gammaproteobacteria	o__Steroidobacterales	f__Steroidobacteraceae	g__Bog-1198	s__
+micro161	2	1	1	0	0	18	0	0	Peripheral nodes	d__Bacteria	p__Proteobacteria	c__Gammaproteobacteria	o__Steroidobacterales	f__Steroidobacteraceae	g__FEN-1191	s__
+micro129	1	0	0	3.26E-09	0	5	-1.435353951	0	Peripheral nodes	d__Bacteria	p__Proteobacteria	c__Alphaproteobacteria	o__Acetobacterales	f__Acetobacteraceae	g__	s__
+micro126	1	0	0	0	0	36	0	0	Peripheral nodes	d__Bacteria	p__Proteobacteria	c__Alphaproteobacteria	o__Acetobacterales	f__Acetobacteraceae	g__	s__
+micro94	1	0	0	0	0	15	0	0	Peripheral nodes	d__Bacteria	p__Proteobacteria	c__Alphaproteobacteria	o__Rhizobiales	f__Xanthobacteraceae	g__Bradyrhizobium	s__
+micro66	1	0	0	0	0	8	-0.75	0	Peripheral nodes	d__Bacteria	p__Proteobacteria	c__Alphaproteobacteria	o__Rhizobiales	f__Beijerinckiaceae	g__Methylocystis	s__Methylocystis sp003152255
+micro44	1	0	0	1.49E-04	0	0	-0.852802865	0	Peripheral nodes	d__Bacteria	p__Proteobacteria	c__Alphaproteobacteria	o__Caulobacterales	f__Caulobacteraceae	g__	s__
+micro32	1	0	0	0	0	30	0	0	Peripheral nodes	d__Bacteria	p__Proteobacteria	c__Alphaproteobacteria	o__Caulobacterales	f__Caulobacteraceae	g__BOG-935	s__BOG-935 sp003165275
+micro22	1	0	0	7.74E-07	0	1	-0.992846101	0	Peripheral nodes	d__Bacteria	p__Armatimonadota	c__SYMT01	o__	f__	g__	s__

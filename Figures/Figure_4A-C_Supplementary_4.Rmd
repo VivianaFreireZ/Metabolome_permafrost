@@ -1,0 +1,398 @@
+---
+title: "Metabolome paper - Figure 4A-C and Supplementary Figure 4"
+author: "Viviana Freire"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Loading libraries
+
+```{r message=FALSE, warning=FALSE}
+library(igraph)
+library(ggpubr)
+library(patchwork)
+library(readxl)
+library(ggtext)
+library(tidyverse)
+```
+
+# Load data
+
+## From MENAP
+
+### Node files
+
+```{r}
+graph_names <- c('Bog',
+                 'Fen',
+                 'Palsa')
+
+node_files <- list.files(path = 'input',
+                         pattern = 'node_table_annotated',
+                         recursive = TRUE,
+                         full.names = TRUE)
+
+names(node_files) <- graph_names
+```
+
+### Edge files
+
+```{r}
+edge_files <- list.files(path = 'input/',
+                         pattern = '.sif',
+                         recursive = TRUE,
+                         full.names = TRUE)
+
+names(edge_files) <- graph_names
+
+# reordering
+node_files <- node_files[c(3, 1, 2)]
+edge_files <- edge_files[c(3, 1, 2)]
+```
+
+### MENA webtool featureIDs
+
+```{r}
+id_metabolites <- read_csv('input/metabolite_menap_ids.csv')
+id_microbes <- read_csv('input/microbe_menap_ids.csv')
+```
+
+# Plot colors 
+
+```{r}
+elcomps <- map(node_files, function(x){
+  names <- read_tsv(x) %>% 
+    filter(str_detect(Name, 'mass')) %>% 
+    distinct(Phylum_Elcomposition) %>% 
+    arrange(Phylum_Elcomposition) %>% 
+    pull(Phylum_Elcomposition)
+}) %>% 
+  reduce(`c`) %>% 
+  unique()
+
+elcomp_colors <- set_names(ggpubr::get_palette('Paired', length(elcomps)),
+                          nm = elcomps)
+
+elcomp_colors['CHO'] <- '#A6CEE3'
+elcomp_colors['CHNO'] <- '#FB9A99'
+elcomp_colors['CHOS'] <- '#FF9900'
+elcomp_colors['CHOSP'] <- 'yellow'
+elcomp_colors['CHNOSP'] <- '#33FF00'
+elcomp_colors['CHNO'] <- '#CCCCFF'
+```
+
+# Process data
+
+```{r}
+processed_nodes <- imap(node_files, function(x, y){
+  
+  nodes <- read_tsv(x) %>% 
+    mutate(color = elcomp_colors[Phylum_Elcomposition],
+           color = ifelse(is.na(color), 'white', color)) %>% 
+    mutate(
+      size = ifelse(str_detect(Node_type, 'Peripheral nodes'), 4.5, 10),
+      frame.color = 'black',
+      frame.width = ifelse(str_detect(Node_type, 'Peripheral nodes'), 1, 2),
+      shape = ifelse(str_detect(Name, 'mass'), 'circle', 'square')
+    )
+  
+  return(nodes)
+})
+
+
+processed_edges <- map(edge_files, function(y){
+  edges <-  read_tsv(y, col_names = c('from', 'direction', 'to')) %>%  
+    select(from, to, direction) %>% 
+    mutate(color = ifelse(direction == 'pp', 'steelblue', 'indianred'),
+           edge.width = 3) 
+  return(edges)
+  
+})
+```
+
+## Create list of networked bacteria
+
+```{r}
+
+list_bac_hab <- imap(processed_nodes, function(nodes, hab){
+  nodes %>% 
+    filter(str_detect(Name, 'micro')) %>% 
+    mutate(Habitat = hab) %>% 
+    select(Name, Habitat)
+})
+
+list_bac_hab_df <- do.call(rbind, list_bac_hab) %>% 
+  left_join(id_microbes, by = c('Name' = 'New_ID'))
+
+write_csv(list_bac_hab_df, 'output/networked_bacteria.csv')
+```
+
+
+# Figure 4
+
+## Create network
+
+```{r}
+network_graphs <- map2(processed_nodes, processed_edges, function(nodes, edges){
+  g <- graph_from_data_frame(edges, vertices = nodes, directed = FALSE) %>% 
+    set_vertex_attr('label', value = NA)
+  
+  l <- layout_with_graphopt(g)
+  l <- norm_coords(l, ymin = -1, ymax = 1, xmin = -1, xmax = 1)
+  
+  return(g)
+})
+```
+
+## Plot network
+
+```{r}
+png('figures/Figure_4A-C_networks.png', 
+    width = 9600, 
+    height = 4500,
+    res = 600)
+
+opar <- par(no.readonly = TRUE)
+
+par(mfrow=c(1,3), mar=c(0,0,0,0), oma = c(4, 1, 1, 1), bg = NA)
+
+iwalk(network_graphs, ~plot(.x, rescale = TRUE))
+legend('bottom', fill = elcomp_colors,
+       legend = names(elcomp_colors),
+       #horiz = TRUE,
+       bg = 'white',
+       ncol = 3,
+       cex = 1.7)
+par(opar)
+
+dev.off()
+```
+
+# Supplementary Figure 4
+
+## Number of nodes
+
+```{r}
+num_nodes <- imap(processed_nodes, function(nodes, hab){
+  count_nodes <- nodes %>% 
+    mutate(f_type = ifelse(str_detect(Name, 'micro'), 'microbe', 'metabolite')) %>% 
+    count(f_type) %>% 
+    rename(Total_nodes = n) %>% 
+    mutate(Habitat = hab,
+           Node_type = 'All')
+  
+  type_nodes <- nodes %>% 
+    mutate(f_type = ifelse(str_detect(Name, 'micro'), 'microbe', 'metabolite')) %>% 
+    group_by(Node_type) %>% 
+    count(f_type) %>% 
+    rename(Total_nodes = n) %>% 
+    mutate(Habitat = hab)
+  
+  nodes_final <- rbind(count_nodes, type_nodes)
+})
+
+num_nodes_df <- do.call(rbind, num_nodes)
+
+num_nodes_plot <- num_nodes_df %>% 
+  mutate(Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen'))) %>%
+  filter(Node_type != 'Peripheral nodes') %>%
+  mutate(f_type = str_to_sentence(f_type)) %>% 
+  ggplot() +
+  geom_col(aes(x = Habitat,
+               y = Total_nodes,
+               fill = f_type),
+           color = 'black') +
+  labs(y = 'Number of nodes',
+       fill = 'Type of node') +
+  scale_fill_manual(values = get_palette('d3', 2)) +
+  theme_bw() +
+  theme(axis.title.x = element_blank()) +
+  facet_wrap(~Node_type, scales = 'free_y')
+
+num_nodes_plot
+```
+
+## Number of edges
+
+```{r}
+num_edges <- imap(processed_edges, function(edges, hab){
+  count_edges <- edges %>% 
+    mutate(from_to = paste0(from, ' to ', to),
+           e_type = case_when(str_detect(from_to, 'micro') & 
+                                str_detect(from_to, 'mass') ~ 'Microbe-Metabolite',
+                              str_detect(from_to, 'micro') & 
+                                !(str_detect(from_to, 'mass')) ~ 'Microbe-Microbe',
+                              str_detect(from_to, 'mass') & 
+                                !(str_detect(from_to, 'micro')) ~ 'Metabolite-Metabolite')) %>% 
+    group_by(direction) %>% 
+    count(e_type) %>% 
+    rename(Num_edges = n) %>% 
+    mutate(Habitat = hab)
+})
+
+num_edges_df <- do.call(rbind, num_edges)
+
+num_edges_plot <- num_edges_df %>% 
+  mutate(Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen')),
+         direction = ifelse(direction == 'np', 'Negative Correlation', 'Positive Correlation')) %>% 
+  ggplot() +
+  geom_col(aes(x = Habitat,
+               y = Num_edges,
+               fill = e_type),
+           color = 'black') +
+  ggsci::scale_fill_uchicago() +
+  labs(y = 'Number of links',
+       fill = 'Type of interaction') +
+  facet_wrap(~direction) +
+  theme_bw() +
+  theme(axis.title.x = element_blank())
+
+num_edges_plot
+```
+
+## Number of modules
+
+```{r}
+num_modules <- imap(processed_nodes, function(nodes, hab){
+  count_modules <- nodes %>% 
+    mutate(f_type = ifelse(str_detect(Name, 'micro'), 'Microbe', 'Metabolite')) %>% 
+    group_by(`No. module`) %>% 
+    count(f_type) %>% 
+    summarise(type_m = paste0(f_type, collapse = ',')) %>% 
+    mutate(type_m = ifelse(str_detect(type_m, ','), 'Mixed', type_m)) %>% 
+    ungroup() %>% 
+    count(type_m) %>% 
+    mutate(Habitat = hab)
+})
+
+num_modules_df <- do.call(rbind, num_modules)
+
+num_modules_plot <- num_modules_df %>% 
+  mutate(Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen'))) %>%
+  ggplot() +
+  geom_col(aes(x = Habitat,
+               y = n,
+               fill = type_m),
+           color = 'black') +
+  scale_fill_manual(values = c('#e8dab2', '#dd6e42', '#4f6d7a')) +
+  labs(y = 'Number of modules',
+       fill = 'Type of module') +
+  theme_bw() +
+  theme(axis.title.x = element_blank())
+
+num_modules_plot
+```
+
+## Phylum linked with metabolite nodes
+
+```{r}
+phylum_vs_metabolites <- pmap(
+  list(processed_nodes,
+       processed_edges,
+       names(processed_nodes)),
+  function(nodes, edges, hab){
+    bact_nodes <- nodes %>% 
+      filter(str_detect(Name, 'micro'))
+    
+    interactions <- edges %>% 
+      mutate(from_to = paste0(from, ' to ', to)) %>%
+      filter(str_detect(from_to, 'micro') & str_detect(from_to, 'mass')) %>% 
+      mutate(micro_node = ifelse(str_detect(from, 'micro'), from, to)) %>% 
+      left_join(nodes, by = c('micro_node' = 'Name')) %>% 
+      group_by(Phylum_Elcomposition) %>% 
+      count(direction) %>% 
+      mutate(Habitat = hab)
+    
+  }
+)
+
+phylum_vs_metabolites_df <- do.call(rbind, phylum_vs_metabolites)
+
+phylum_vs_metabolites_plot <- phylum_vs_metabolites_df %>% 
+  mutate(Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen')),
+         n = ifelse(direction == 'np', -n, n),
+         direction = ifelse(direction == 'np', 'Negative', 'Positive')) %>% 
+  ggplot() +
+  geom_col(aes(y = Phylum_Elcomposition,
+               x = n,
+               fill = direction),
+           color = 'black') +
+  labs(x = 'Number of negative (<-) or positive (->) correlations',
+       fill = 'Correlation') +
+  theme_bw() +
+  scale_x_continuous(labels = abs) +
+  scale_fill_manual(values = c('Positive' = 'indianred2', 'Negative' = 'steelblue')) +
+  facet_grid(cols = vars(Habitat), scales = 'free_y', space = 'free') +
+  theme(axis.title.y = element_blank())
+
+phylum_vs_metabolites_plot
+```
+
+## Heatmap of interactions by metabolite class
+
+```{r}
+phylum_vs_metabolites_hmp <- pmap(
+  list(processed_nodes,
+       processed_edges,
+       names(processed_nodes)),
+  function(nodes, edges, hab){
+    micro_nodes <- nodes %>% 
+      filter(str_detect(Name, 'micro')) %>% 
+      select(Name, Phylum = Phylum_Elcomposition)
+    
+    mass_nodes <- nodes %>% 
+      filter(str_detect(Name, 'mass')) %>% 
+      select(Name, Elcomposition = Phylum_Elcomposition, Molclass = Order_bs2class)
+    
+    interactions <- edges %>% 
+      mutate(from_to = paste0(from, ' to ', to)) %>%
+      filter(str_detect(from_to, 'micro') & str_detect(from_to, 'mass')) %>% 
+      mutate(mass_node = ifelse(str_detect(from, 'mass'), from, to),
+             micro_node = ifelse(str_detect(from, 'micro'), from, to)) %>% 
+      left_join(mass_nodes, by = c('mass_node' = 'Name')) %>% 
+      left_join(micro_nodes, by = c('micro_node' = 'Name')) %>% 
+      mutate(Habitat = hab)
+    
+  }
+)
+
+phylum_vs_metabolites_hmp_df <- do.call(rbind, phylum_vs_metabolites_hmp) %>% 
+  mutate(Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen'))) 
+
+hmp_class_q <- phylum_vs_metabolites_hmp_df %>% 
+  select(Phylum, Molclass, Habitat) %>% 
+  group_by(Habitat, Phylum, Molclass) %>% 
+  count() %>% 
+  pivot_wider(names_from = Molclass, values_from = n, values_fill = NA) %>% 
+  pivot_longer(!c(Phylum, Habitat), names_to = 'MolClass', values_to = 'n') %>% 
+  ggplot() +
+  geom_tile(aes(y = Phylum,
+                x = MolClass,
+                fill = n),
+            color = 'white') +
+  scale_fill_distiller('Number of\ninteractions',
+                       palette = 'YlOrRd', direction = 1, 
+                       na.value = 'white', limits = c(0, 20)) +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  theme_bw() +
+  facet_grid(rows = vars(Habitat), scales = 'free_y', space = 'free') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank())
+
+hmp_class_q
+```
+
+# Joining Figure
+
+```{r}
+supplementary_4 <- (((num_nodes_plot / num_edges_plot / num_modules_plot) |
+  ((phylum_vs_metabolites_plot / hmp_class_q) + plot_layout(heights = c(1, 1.5)))) +
+  plot_annotation(tag_levels = 'A')) &
+  theme(plot.tag = element_text(size = 12))
+
+ggsave('figures/Supplementary_fig_4.png', supplementary_4, dpi = 300, width = 12, height = 12)
+```
+
+
+

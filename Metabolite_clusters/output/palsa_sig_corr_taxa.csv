@@ -1,0 +1,4 @@
+Microbe,cluster,rho,pvalue,p_adj,Domain,Phylum,Class,Order,Family,Genus,Species
+20160700_P15_13,Cluster2,0.5254901960784314,0.01442864993973969,0.03835293414553911,d__Bacteria,p__Actinobacteriota,c__Acidimicrobiia,o__Acidimicrobiales,f__Palsa-688,g__,s__
+20110800_P1S_5,Cluster2,0.5661484283741443,0.007463767713643321,0.022138623504790997,d__Bacteria,p__Acidobacteriota,c__Acidobacteriae,o__Bryobacterales,f__Bryobacteraceae,g__Bog-159,s__
+20110700_P3S_8,Cluster1,-0.5905335825418687,0.004824989543093627,0.015415604739365055,d__Bacteria,p__Proteobacteria,c__Gammaproteobacteria,o__Steroidobacterales,f__Steroidobacteraceae,g__Bog-1198,s__

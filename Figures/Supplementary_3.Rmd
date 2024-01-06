@@ -1,0 +1,68 @@
+---
+title: "Metabolome paper - Supplementary Figure 3"
+author: "Viviana Freire"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Loading libraries
+
+```{r message=FALSE, warning=FALSE}
+library(readxl)
+library(tidyverse)
+```
+
+# Load data
+
+## METABOLIC results Bog
+
+Selected genomes (i.e., `bog_sel_genomes_co2` and `bog_sel_genomes_ch4`) are those that had significant correlations with greenhouse gases
+
+```{r}
+bog_sel_genomes_co2 <- c('20110800_S2M_3', '20120700_S1D_25', 
+                         '20120800_E1D_14', '20140700_E14_11')
+
+bog_sel_genomes_ch4 <- c('20110800_S2M_3', '20120600_S1S_4',
+                         '20140700_E14_11')
+
+modules_bog <- read_xlsx('input/bog_METABOLIC_result.xlsx', sheet = 3) %>% 
+  select(Module.ID, Module, Module.Category, contains('Module.presence')) %>% 
+  pivot_longer(contains('Module.presence'), names_to = 'genome', values_to = 'Presence') %>% 
+  mutate(genome = str_remove(genome, 'X'),
+         genome = str_remove(genome, '.Module.presence'),
+         Module.Category = ifelse(is.na(Module.Category), 'Other', Module.Category)) %>% 
+  filter(genome %in% c(bog_sel_genomes_ch4, bog_sel_genomes_co2),
+         Presence == 'Present')
+```
+
+# Plotting
+
+```{r}
+bog_modules_plot <- modules_bog %>% 
+  ggplot() +
+  geom_tile(aes(x = genome,
+                y = Module),
+            fill = 'purple',
+            color = 'white') +
+  theme_bw() +
+  facet_grid(rows = vars(Module.Category),
+             scales = 'free_y',
+             space = 'free') +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  theme(axis.title = element_blank(),
+        #axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        strip.text.y = element_text(angle = 0),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        strip.placement = 'outside')  
+
+bog_modules_plot
+
+ggsave('figures/Supplementary_fig_3.png', bog_modules_plot, 
+       dpi = 300, height = 12, width = 15)
+```
+
+

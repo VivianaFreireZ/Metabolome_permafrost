@@ -1,0 +1,409 @@
+---
+title: "Metabolome paper - BNTI clusters correlations"
+author: "Viviana Freire"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Loading libraries
+
+```{r message=FALSE, warning=FALSE}
+library(Hmisc)
+library(tidyverse)
+```
+
+# Functions
+
+```{r}
+cluster_medians <- function(df, cluster, env_df){
+  # Function to get the median value of cluster
+  rownames(df) <- NULL
+  df_tem <- df %>% 
+    select(-cluster) %>% 
+    column_to_rownames(var = 'featureid') %>% 
+    select(all_of(env_df$SampleID))
+  
+  medians <- robustbase::colMedians(as.matrix(df_tem), na.rm = TRUE)
+  
+  medians <- as.data.frame(t(medians)) %>% 
+    mutate(cluster = paste0('Cluster', cluster)) %>% 
+    select(cluster, everything())
+  
+  return(medians)
+}
+
+env_cor <- function(env_var, cluster_df, env_df){
+  # Function to correlate consensus cluster values with env data
+  rownames(cluster_df) <- NULL
+  cluster_df <- cluster_df[,c('cluster', env_df$SampleID)] %>% 
+    column_to_rownames(var = 'cluster')
+  
+  env_data <- env_df[[env_var]]
+  
+  nclust <- nrow(cluster_df)
+  
+  corr <- Hmisc::rcorr(t(cluster_df), env_data, type = 'spearman')
+  
+  corr_r <- corr$r[1:nclust,'y']
+  corr_p <- corr$P[1:nclust,'y']
+  
+  res <- tibble(cluster = rownames(cluster_df),
+                env_variable = rep(env_var, nclust),
+                rho = corr_r,
+                pvalue = corr_p)
+  
+  res$pval_adj <- p.adjust(res$pvalue)
+  
+  return(res)
+}
+
+matrix_cor <- function(cluster_df, other_df, type){
+  # Function to correlate with matrix data
+  
+  rownames(cluster_df) <- NULL
+  cluster_df <- cluster_df %>% 
+    column_to_rownames(var = 'cluster') %>% 
+    select(all_of(colnames(other_df)))
+  
+  nclust <- nrow(cluster_df)
+  
+  # Keeping only features with more than 50% values
+  
+  if(type == 'bnti'){
+    sel_rows <- rowSums(!is.na(other_df)) > ceil(ncol(other_df)/2)
+  } else if(type == 'abundance'){
+    sel_rows <- rowSums(other_df > 0) > ceil(ncol(other_df)/2)
+  }
+  
+  other_df_filt <- other_df[sel_rows,]
+  
+  corr <- Hmisc::rcorr(t(cluster_df), t(other_df_filt), type = 'spearman')
+  
+  corr_r <- as.data.frame(corr$r) %>% 
+    select(all_of(rownames(cluster_df))) %>% 
+    rownames_to_column(var = 'Microbe') %>% 
+    filter(!(Microbe %in% rownames(cluster_df))) %>% 
+    pivot_longer(!Microbe, names_to = 'cluster', values_to = 'rho') %>% 
+    drop_na()
+  
+  corr_p <- as.data.frame(corr$P) %>% 
+    select(all_of(rownames(cluster_df))) %>% 
+    rownames_to_column(var = 'Microbe') %>% 
+    filter(!(Microbe %in% rownames(cluster_df))) %>% 
+    pivot_longer(!Microbe, names_to = 'cluster', values_to = 'pvalue') %>% 
+    drop_na()
+  
+  corr_p_adj <- as.data.frame(matrix(p.adjust(corr$P, method = 'fdr'),
+                                     nrow = nrow(corr$P),
+                                     dimnames = list(rownames(corr$P),
+                                                     colnames(corr$P)))) %>% 
+    select(all_of(rownames(cluster_df))) %>% 
+    rownames_to_column(var = 'Microbe') %>% 
+    filter(!(Microbe %in% rownames(cluster_df))) %>% 
+    pivot_longer(!Microbe, names_to = 'cluster', values_to = 'p_adj') %>% 
+    drop_na()
+  
+  res <- inner_join(corr_r, corr_p, by = c('Microbe', 'cluster')) %>% 
+    inner_join(corr_p_adj, by = c('Microbe', 'cluster'))
+  
+  return(res)
+}
+```
+
+# Data loading and preprocessing
+
+## Microbial BNTI_feature data
+
+```{r}
+palsa_micro <- read_csv("input/bNTI_Feat_microbe_bulk_palsa_bNTI_feature_by_samp_999rep.csv") %>% 
+  column_to_rownames(var = '...1') 
+
+bog_micro <- read_csv("input/bNTI_Feat_microbe_bulk_bog_bNTI_feature_by_samp_999rep.csv") %>% 
+  column_to_rownames(var = '...1')
+
+fen_micro <- read_csv("input/bNTI_Feat_microbe_bulk_fen_bNTI_feature_by_samp_999rep.csv") %>% 
+  column_to_rownames(var = '...1')
+```
+
+## Environmental data
+
+```{r}
+envs <- read_csv("input/peat_geodata_5-20-23.csv")
+
+palsa_envs <- envs %>% 
+  filter(Habitat == "Palsa") %>% 
+  select(!c(Notes__.Biogeochemistry, Notes__.DepthInfo, 
+            d13C_peat__, DepthMin__, Year, Samplenumber,
+            Depth, Sampletype, DepthMax__, d15N_peat__, `...19`)) %>% 
+  filter(SampleID %in% colnames(palsa_micro))
+
+bog_envs <- envs %>% 
+  filter(Habitat == "Bog") %>% 
+  select(!c(Notes__.Biogeochemistry, Notes__.DepthInfo, 
+            d13C_peat__, DepthMin__, Year, Samplenumber,
+            Depth, Sampletype, DepthMax__, d15N_peat__, `...19`)) %>% 
+  filter(SampleID %in% colnames(bog_micro))
+
+fen_envs <- envs %>% 
+  filter(Habitat == "Fen") %>% 
+  select(!c(Notes__.Biogeochemistry, Notes__.DepthInfo, 
+            d13C_peat__, DepthMin__, Year, Samplenumber,
+            Depth, Sampletype, DepthMax__, d15N_peat__, `...19`)) %>% 
+  filter(SampleID %in% colnames(fen_micro))
+
+env_variables <- colnames(palsa_envs)[4:10]
+```
+
+## Metabolite BNTI_feature cluster data
+
+```{r}
+palsa_rep_values <- read_csv('output/rep_features_palsa_bnti.csv') %>% 
+  select(featureid, cluster, colnames(palsa_micro)) %>% 
+  split(.$cluster)
+
+bog_rep_values <- read_csv('output/rep_features_bog_bnti.csv') %>% 
+  select(featureid, cluster, colnames(bog_micro)) %>% 
+  split(.$cluster)
+
+fen_rep_values <- read_csv('output/rep_features_fen_bnti.csv') %>% 
+  select(featureid, cluster, colnames(fen_micro)) %>% 
+  split(.$cluster)
+```
+
+## CO2 data
+
+```{r}
+palsa_gas <- read_csv("input/palsa_matrix_3-1-22.csv") %>%
+  select(!c(EMERGE_sampleID, SampleID_old__)) %>%
+  select(SampleID, Month, Habitat, CH4.percent, CO2.percent) %>%
+  #delete samples with NA
+  na.omit()
+
+bog_gas <- read_csv("input/bog_matrix_3-1-22.csv") %>%
+  select(!c(EMERGE_sampleID, SampleID_old__)) %>%
+  select(SampleID, Month, Habitat, pH_porewater, CH4.mM__, CO2.mM__) %>%
+  #delete samples with NA
+  na.omit()
+
+fen_gas <- read_csv("input/fen_matrix_3-1-22.csv") %>%
+  select(!c(EMERGE_sampleID, SampleID_old__)) %>%
+  select(SampleID, Month, Habitat, pH_porewater, CH4.mM__, CO2.mM__) %>%
+  #delete samples with NA
+  na.omit()
+```
+
+## Microbial abundance
+
+```{r}
+mags_metadata <- read_csv('input/metadata_matched_MAGs_data_11-29-21.csv')
+
+matched_names = setNames(mags_metadata$SampleID,
+                         nm = mags_metadata$names_bnti)
+
+otu_data <- read_csv("input/otu_normalized_df_3-4-22.csv") 
+
+otu_table <- otu_data %>% 
+  column_to_rownames(var = 'genome') %>% 
+  select(all_of(mags_metadata$names_bnti)) %>% 
+  rename_with(.fn = function(x){
+    matched_names[x]
+  })
+
+otu_tax <- otu_data %>% 
+  select(c(genome, Domain, Phylum, Class, Order, Family, Genus, Species)) %>% 
+  rename(Microbe = genome)
+
+otu_palsa <- otu_table %>% 
+  select(all_of(colnames(palsa_micro)))
+
+otu_bog <- otu_table %>% 
+  select(all_of(colnames(bog_micro)))
+
+otu_fen <- otu_table %>% 
+  select(all_of(colnames(fen_micro)))
+```
+
+# Palsa correlations
+
+## Getting consensus BNTI values per each cluster
+
+```{r}
+consensus_palsa <- imap(palsa_rep_values, ~cluster_medians(df = .x, 
+                                                           cluster = .y,
+                                                           env_df = palsa_envs))  
+consensus_palsa_df <- do.call(rbind, consensus_palsa)
+```
+
+## Correlation with environmental variables
+
+```{r}
+corr_palsa_env <- map(env_variables, ~env_cor(env_var = .x,
+                                              cluster_df = consensus_palsa_df,
+                                              env_df = palsa_envs))
+
+corr_palsa_env_df <- do.call(rbind, corr_palsa_env)
+```
+
+## Correlation with gas data
+
+```{r}
+corr_palsa_gas_df <- env_cor(env_var = 'CO2.percent',
+                             cluster_df = consensus_palsa_df,
+                             env_df = palsa_gas)
+```
+
+## Correlation with microbial BNTI
+
+```{r}
+corr_palsa_bnti_df <- matrix_cor(cluster_df = consensus_palsa_df,
+                                 other_df = palsa_micro,
+                                 type = 'bnti')
+```
+
+## Correlation with microbial abundances
+
+```{r}
+corr_palsa_abundance_df <- matrix_cor(cluster_df = consensus_palsa_df,
+                                      other_df = otu_palsa,
+                                      type = 'abundance')
+
+corr_palsa_abundance_df_sig_taxa <- corr_palsa_abundance_df %>% 
+  filter(p_adj < 0.05) %>% 
+  left_join(otu_tax, by = 'Microbe')
+```
+
+## Saving correlation tables
+
+```{r}
+write_csv(corr_palsa_env_df, 'output/palsa_env_correlations.csv')
+write_csv(corr_palsa_gas_df, 'output/palsa_gas_correlations.csv')
+write_csv(corr_palsa_bnti_df, 'output/palsa_bnti-micro_correlations.csv')
+write_csv(corr_palsa_abundance_df, 'output/palsa_abundance-micro_correlations.csv')
+write_csv(corr_palsa_abundance_df_sig_taxa, 'output/palsa_sig_corr_taxa.csv')
+```
+
+# Bog correlations
+
+## Getting consensus BNTI values per each cluster
+
+```{r}
+consensus_bog <- imap(bog_rep_values, ~cluster_medians(df = .x, 
+                                                       cluster = .y,
+                                                       env_df = bog_envs))  
+consensus_bog_df <- do.call(rbind, consensus_bog)
+```
+
+## Correlation with environmental variables
+
+```{r}
+corr_bog_env <- map(env_variables, ~env_cor(env_var = .x,
+                                            cluster_df = consensus_bog_df,
+                                            env_df = bog_envs))
+
+corr_bog_env_df <- do.call(rbind, corr_bog_env)
+```
+
+## Correlation with gas data
+
+```{r}
+corr_bog_gas <- map(c('CO2.mM__', 'CH4.mM__'), 
+                    ~env_cor(env_var = .x,
+                             cluster_df = consensus_bog_df,
+                             env_df = bog_gas))
+
+corr_bog_gas_df <- do.call(rbind, corr_bog_gas)
+```
+
+## Correlation with microbial BNTI
+
+```{r}
+corr_bog_bnti_df <- matrix_cor(cluster_df = consensus_bog_df,
+                               other_df = bog_micro,
+                               type = 'bnti')
+```
+
+## Correlation with microbial abundances
+
+```{r}
+corr_bog_abundance_df <- matrix_cor(cluster_df = consensus_bog_df,
+                                    other_df = otu_bog,
+                                    type = 'abundance')
+
+corr_bog_abundance_df_sig_taxa <- corr_bog_abundance_df %>% 
+  filter(p_adj < 0.05) %>% 
+  left_join(otu_tax, by = 'Microbe')
+```
+
+## Saving correlation tables
+
+```{r}
+write_csv(corr_bog_env_df, 'output/bog_env_correlations.csv')
+write_csv(corr_bog_gas_df, 'output/bog_gas_correlations.csv')
+write_csv(corr_bog_bnti_df, 'output/bog_bnti-micro_correlations.csv')
+write_csv(corr_bog_abundance_df, 'output/bog_abundance-micro_correlations.csv')
+write_csv(corr_bog_abundance_df_sig_taxa, 'output/bog_sig_corr_taxa.csv')
+```
+
+# Fen correlations
+
+## Getting consensus BNTI values per each cluster
+
+```{r}
+consensus_fen <- imap(fen_rep_values, ~cluster_medians(df = .x, 
+                                                       cluster = .y,
+                                                       env_df = fen_envs))  
+consensus_fen_df <- do.call(rbind, consensus_fen)
+```
+
+## Correlation with environmental variables
+
+```{r}
+corr_fen_env <- map(env_variables, ~env_cor(env_var = .x,
+                                            cluster_df = consensus_fen_df,
+                                            env_df = fen_envs))
+
+corr_fen_env_df <- do.call(rbind, corr_fen_env)
+```
+
+## Correlation with gas data
+
+```{r}
+corr_fen_gas <- map(c('CO2.mM__', 'CH4.mM__'), 
+                    ~env_cor(env_var = .x,
+                             cluster_df = consensus_fen_df,
+                             env_df = fen_gas))
+
+corr_fen_gas_df <- do.call(rbind, corr_fen_gas)
+```
+
+## Correlation with microbial BNTI
+
+```{r}
+corr_fen_bnti_df <- matrix_cor(cluster_df = consensus_fen_df,
+                               other_df = fen_micro,
+                               type = 'bnti')
+```
+
+## Correlation with microbial abundances
+
+```{r}
+corr_fen_abundance_df <- matrix_cor(cluster_df = consensus_fen_df,
+                                    other_df = otu_fen,
+                                    type = 'abundance')
+
+corr_fen_abundance_df_sig_taxa <- corr_fen_abundance_df %>% 
+  filter(p_adj < 0.05) %>% 
+  left_join(otu_tax, by = 'Microbe')
+```
+
+## Saving correlation tables
+
+```{r}
+write_csv(corr_fen_env_df, 'output/fen_env_correlations.csv')
+write_csv(corr_fen_gas_df, 'output/fen_gas_correlations.csv')
+write_csv(corr_fen_bnti_df, 'output/fen_bnti-micro_correlations.csv')
+write_csv(corr_fen_abundance_df, 'output/fen_abundance-micro_correlations.csv')
+write_csv(corr_fen_abundance_df_sig_taxa, 'output/fen_sig_corr_taxa.csv')
+```
+
+

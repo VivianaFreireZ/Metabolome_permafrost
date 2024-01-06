@@ -1,0 +1,11 @@
+Microbe,cluster,rho,pvalue,p_adj,Domain,Phylum,Class,Order,Family,Genus,Species
+20110800_E1D_1,Cluster2,0.6200445147611575,0.0012295460637383737,0.016704867210790317,d__Bacteria,p__Chloroflexota,c__Ellin6529,o__CSP1-4,f__CSP1-4,g__Fen-1039,s__Fen-1039 sp003157175
+20130700_C1D_19,Cluster2,0.5943364147113274,0.0021942021782592747,0.024970125341098735,d__Bacteria,p__Chloroflexota,c__Ellin6529,o__CSP1-4,f__CSP1-4,g__Fen-1039,s__
+20140700_E14_11,Cluster3,-0.6145062001022451,0.0013987771995020992,0.01825503049503606,d__Bacteria,p__Actinobacteriota,c__Acidimicrobiia,o__Acidimicrobiales,f__Bog-793,g__Fen-455,s__Fen-455 sp003140595
+20130700_C2X_6,Cluster3,0.5605566559998523,0.004382827187812133,0.03902899524349678,d__Bacteria,p__Verrucomicrobiota,c__Verrucomicrobiae,o__Opitutales,f__Opitutaceae,g__,s__
+3300036929_5,Cluster2,0.6604238348955451,4.4428352424752404e-4,0.008458912937990828,d__Bacteria,p__Verrucomicrobiota,c__Verrucomicrobiae,o__Pedosphaerales,f__Pedosphaeraceae,g__UBA11358,s__
+3300037085_4,Cluster2,0.637770774595698,8.003621287699936e-4,0.01262401246571364,d__Bacteria,p__Verrucomicrobiota,c__Verrucomicrobiae,o__Pedosphaerales,f__Pedosphaeraceae,g__UBA11358,s__
+20120600_E3D_27,Cluster3,-0.5783302513641838,0.003073517501166023,0.03123017309342697,d__Bacteria,p__Bacteroidota,c__Bacteroidia,o__Bacteroidales,f__FEN-979,g__QYOJ01,s__
+20100900_E1D_8,Cluster2,0.5745470558196434,0.0033201625494987397,0.032693151751448483,d__Bacteria,p__Bacteroidota,c__UBA10030,o__UBA10030,f__UBA10030,g__Fen-1254,s__Fen-1254 sp003162695
+20120600_E1D_19,Cluster3,-0.6078616408041085,0.0016277720248052407,0.02007592108535159,d__Bacteria,p__Acidobacteriota,c__Acidobacteriae,o__Acidobacteriales,f__Acidobacteriaceae,g__Terracidiphilus,s__
+20160700_E25_27,Cluster3,-0.5677573387206546,0.003804864836781441,0.03553784254421988,d__Bacteria,p__Acidobacteriota,c__Acidobacteriae,o__Acidobacteriales,f__Koribacteraceae,g__Bog-209,s__
