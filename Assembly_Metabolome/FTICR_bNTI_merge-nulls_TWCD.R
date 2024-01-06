@@ -22,10 +22,9 @@ acomb = function(...) abind(..., along = 3)
 #### Data Loading ####
 # ################## #
 
-setwd("C:/Users/vivia/Desktop/PhD_2024/Metabolome_paper_2024/Metabolome_paper_FreireZapata-Tfaily_code/Assembly_Metabolome")
 
 data = read.csv("output/Processed_Abisko_Data.csv", row.names = 1) # Importing the organismal data  
-tree = read.tree("output/Abisko_Weighted_All-Trans_UPGMA_so_4-11-21.tre") # Importing the tree
+tree = read.tree("output/Abisko_Weighted_All-Trans_UPGMA.tre") # Importing the tree
 
 # ###################### #
 #### bNTI Calculation ####

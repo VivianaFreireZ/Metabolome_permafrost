@@ -17,9 +17,6 @@ resume = F # This switch controls whether or not you want to resume a previously
 ### Loading in data ###
 #######################
 
-# Loading in ICR data
-setwd("C:/Users/vivia/Desktop/PhD_2024/Metabolome_paper_2024/Metabolome_paper_FreireZapata-Tfaily_code/Assembly_Metabolome")
-
 data = read.csv("output/Processed_Abisko_Data.csv", row.names = 1) # Keeping data and mol-data seperate to ensure they are unaltered
 mol = read.csv("output/Processed_Abisko_Mol.csv", row.names = 1)
 
@@ -88,7 +85,7 @@ for(i in start_peak:(nrow(data)-1)){ # I cannot stress the importance of the "-1
     dir.create(paste("Peak_Transformations/", Sample_Name, sep = ""))
   }
   
-  write.csv(Distance_Results, paste0("Peak_Transformations/", Sample_Name, "/Distance_Results_", i, "_for_peak_", row.names(data)[i], ".csv"),
+   write.csv(Distance_Results, paste0("Peak_Transformations/", Sample_Name, "/Distance_Results_", i, "_for_peak_", row.names(data)[i], ".csv"),
             quote = F, row.names = F)
   
   # Building a larger peak.2.peak file

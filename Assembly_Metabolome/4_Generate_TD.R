@@ -13,7 +13,7 @@ library(tidyverse)
 Sample_Name = "Abisko"
 
 # Load in data
-setwd("C:/Users/vivia/Desktop/PhD_2024/Metabolome_paper_2024/Metabolome_paper_FreireZapata-Tfaily_code/Assembly_Metabolome")
+
 peak.2.peak = read.csv("output/Abisko_All-Trans_peak.2.peak.csv") # Load in the peak.2.peak file for all/bulk transformations
 num.trans = read.csv("output/Abisko_All-Trans_num.peak.trans.csv") # Load in the num.peak.trans file for all/bulk transformations
 

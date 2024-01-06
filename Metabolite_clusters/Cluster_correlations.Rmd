@@ -1,8 +1,10 @@
 ---
 title: "Metabolome paper - BNTI clusters correlations"
-author: "Viviana Freire"
+author: "Viviana Freire Zapata"
 date: "`r Sys.Date()`"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Loading libraries
@@ -115,20 +117,20 @@ matrix_cor <- function(cluster_df, other_df, type){
 ## Microbial BNTI_feature data
 
 ```{r}
-palsa_micro <- read_csv("input/bNTI_Feat_microbe_bulk_palsa_bNTI_feature_by_samp_999rep.csv") %>% 
+palsa_micro <- read_csv("../Assembly_feature_level_microbiome/output/bNTI_Feat_microbe_bulk_palsa_bNTI_feature_by_samp_999rep.csv") %>% 
   column_to_rownames(var = '...1') 
 
-bog_micro <- read_csv("input/bNTI_Feat_microbe_bulk_bog_bNTI_feature_by_samp_999rep.csv") %>% 
+bog_micro <- read_csv("../Assembly_feature_level_microbiome/output/bNTI_Feat_microbe_bulk_bog_bNTI_feature_by_samp_999rep.csv") %>% 
   column_to_rownames(var = '...1')
 
-fen_micro <- read_csv("input/bNTI_Feat_microbe_bulk_fen_bNTI_feature_by_samp_999rep.csv") %>% 
+fen_micro <- read_csv("../Assembly_feature_level_microbiome/output/bNTI_Feat_microbe_bulk_fen_bNTI_feature_by_samp_999rep.csv") %>% 
   column_to_rownames(var = '...1')
 ```
 
 ## Environmental data
 
 ```{r}
-envs <- read_csv("input/peat_geodata_5-20-23.csv")
+envs <- read_csv("../input/peat_geodata_5-20-23.csv")
 
 palsa_envs <- envs %>% 
   filter(Habitat == "Palsa") %>% 
@@ -173,19 +175,19 @@ fen_rep_values <- read_csv('output/rep_features_fen_bnti.csv') %>%
 ## CO2 data
 
 ```{r}
-palsa_gas <- read_csv("input/palsa_matrix_3-1-22.csv") %>%
+palsa_gas <- read_csv("../input/palsa_matrix_3-1-22.csv") %>%
   select(!c(EMERGE_sampleID, SampleID_old__)) %>%
   select(SampleID, Month, Habitat, CH4.percent, CO2.percent) %>%
   #delete samples with NA
   na.omit()
 
-bog_gas <- read_csv("input/bog_matrix_3-1-22.csv") %>%
+bog_gas <- read_csv("../input/bog_matrix_3-1-22.csv") %>%
   select(!c(EMERGE_sampleID, SampleID_old__)) %>%
   select(SampleID, Month, Habitat, pH_porewater, CH4.mM__, CO2.mM__) %>%
   #delete samples with NA
   na.omit()
 
-fen_gas <- read_csv("input/fen_matrix_3-1-22.csv") %>%
+fen_gas <- read_csv("../input/fen_matrix_3-1-22.csv") %>%
   select(!c(EMERGE_sampleID, SampleID_old__)) %>%
   select(SampleID, Month, Habitat, pH_porewater, CH4.mM__, CO2.mM__) %>%
   #delete samples with NA
@@ -195,12 +197,12 @@ fen_gas <- read_csv("input/fen_matrix_3-1-22.csv") %>%
 ## Microbial abundance
 
 ```{r}
-mags_metadata <- read_csv('input/metadata_matched_MAGs_data_11-29-21.csv')
+mags_metadata <- read_csv('../Assembly_feature_level_microbiome/input/metadata_matched_MAGs_data.csv')
 
 matched_names = setNames(mags_metadata$SampleID,
                          nm = mags_metadata$names_bnti)
 
-otu_data <- read_csv("input/otu_normalized_df_3-4-22.csv") 
+otu_data <- read_csv("../Assembly_feature_level_microbiome/input/otu_normalized.csv") 
 
 otu_table <- otu_data %>% 
   column_to_rownames(var = 'genome') %>% 

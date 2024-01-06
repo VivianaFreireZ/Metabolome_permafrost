@@ -1,8 +1,10 @@
 ---
 title: "Metabolome paper - BNTI-feature clusters"
-author: "Viviana Freire"
+author: "Viviana Freire Zapata"
 date: "`r Sys.Date()`"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Loading libraries
@@ -60,13 +62,13 @@ cluster_rep_features <- function(dist_matrix, k){
 ### Load datasets
 
 ```{r}
-palsa_mt <- read_csv("input/bNTI_feat_TWCD_within_palsa_bNTI_feature_by_samp_999rep.csv") %>% 
+palsa_mt <- read_csv("../Assembly_feature_level_metabolome/output/bNTI_feat_TWCD_within_palsa_bNTI_feature_by_samp_999rep.csv") %>% 
   column_to_rownames(var = '...1')
 
 # Using only masses present in more than 50% of samples
 palsa_mt_filt <- palsa_mt[rowSums(!is.na(palsa_mt)) > 15,]
 
-palsa_chem <- read_csv('input/Palsa_feature_TWCD_mol_8-2-22.csv')
+palsa_chem <- read_csv('../Assembly_feature_level_metabolome/output/Palsa_feature_TWCD_mol_8-2-22.csv')
 ```
 
 ### Creating dissimilarity matrix
@@ -111,13 +113,13 @@ write_csv(rep_features_palsa_bnti, 'output/rep_features_palsa_bnti.csv')
 ### Load datasets
 
 ```{r}
-bog_mt <- read_csv("input/bNTI_feat_TWCD_within_bog_bNTI_feature_by_samp_999rep.csv") %>% 
+bog_mt <- read_csv("../Assembly_feature_level_metabolome/output/bNTI_feat_TWCD_within_bog_bNTI_feature_by_samp_999rep.csv") %>% 
   column_to_rownames(var = '...1')
 
 # Using only masses present in more than 50% of samples
 bog_mt_filt <- bog_mt[rowSums(!is.na(bog_mt)) > 14,]
 
-bog_chem <- read_csv('input/bog_feature_TWCD_mol_8-2-22.csv')
+bog_chem <- read_csv('../Assembly_feature_level_metabolome/output/bog_feature_TWCD_mol_8-2-22.csv')
 ```
 
 ### Creating dissimilarity matrix
@@ -161,13 +163,13 @@ write_csv(rep_features_bog_bnti, 'output/rep_features_bog_bnti.csv')
 ### Load datasets
 
 ```{r}
-fen_mt <- read_csv("input/bNTI_feat_TWCD_within_fen_bNTI_feature_by_samp_999rep.csv") %>% 
+fen_mt <- read_csv("../Assembly_feature_level_metabolome/output/bNTI_feat_TWCD_within_fen_bNTI_feature_by_samp_999rep.csv") %>% 
   column_to_rownames(var = '...1')
 
 # Using only masses present in more than 50% of samples
 fen_mt_filt <- fen_mt[rowSums(!is.na(fen_mt)) > 15,]
 
-fen_chem <- read_csv('input/fen_feature_TWCD_mol_8-2-22.csv')
+fen_chem <- read_csv('../Assembly_feature_level_metabolome/output/fen_feature_TWCD_mol_8-2-22.csv')
 ```
 
 ### Creating dissimilarity matrix

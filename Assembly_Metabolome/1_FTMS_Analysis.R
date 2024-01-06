@@ -12,14 +12,6 @@ require(ftmsRanalysis) # package found at https://github.com/EMSL-Computing/ftms
 Sample_Name = "Abisko" # Sample name for output
 summary = T # This is a switch which will generate compound class and characteristics summary files
 
-## Creating directories
-
-setwd("C:/Users/vivia/Desktop/PhD_2024/Metabolome_paper_2024/Metabolome_paper_FreireZapata-Tfaily_code/Assembly_Metabolome")
-
-output <- file.path("C:/Users/vivia/Escritorio/PhD_2024/Metabolome_paper_2024/Metabolome_paper_FreireZapata-Tfaily_code/Assembly_Metabolome/output")
-
-dir.create(output)
-
 
 ### Load in data ###
 

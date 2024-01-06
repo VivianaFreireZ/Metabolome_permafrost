@@ -201,9 +201,9 @@ bp_group_vio_so
 ```{r}
 ## Bacteria BNTI
 
-samples_names <- read_csv("../Assembly_Microbiome/data/metadata_matched_MAGs_data_11-29-21.csv")
+samples_names <- read_csv("../Assembly_feature_level_microbiome/input/metadata_matched_MAGs_data.csv")
 
-bacteria_bnti <- read_csv("../Assembly_Microbiome/weighted_BNTI_bacteria.csv") %>% 
+bacteria_bnti <- read_csv("../Assembly_Microbiome/output/weighted_BNTI_bacteria.csv") %>% 
   column_to_rownames("...1")
 
 bacteria_bnti <- bacteria_bnti[colnames(bacteria_bnti),] %>% 
@@ -443,7 +443,7 @@ eco_process_colors <- c('Homogeneous selection' = '#ED553B',
 #### Metabolites
 
 ```{r}
-data_metabolites <- read.csv("input/Ecological_process_pw_peat_1-25-22.csv") %>% 
+data_metabolites <- read.csv("../input/Ecological_process_pw_peat_1-25-22.csv") %>% 
   mutate(Compound = str_replace(Compound, "All" , "Bulk metabolites"),
          Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen'))) %>% 
   select(-Var1, -Type) %>% 
@@ -456,7 +456,7 @@ data_metabolites <- read.csv("input/Ecological_process_pw_peat_1-25-22.csv") %>%
 
 ```{r}
 #Loading RCBC matrix
-rcbc_bac <- read_tsv("input/rcbc_matrix_changed_names.tsv") %>% 
+rcbc_bac <- read_tsv("../input/rcbc_matrix_changed_names.tsv") %>% 
   column_to_rownames(var = "...1")
 
 ## Data Preprocessing
@@ -676,7 +676,7 @@ eco_proc_final <- g
 ### Loading biogeochemical data
 
 ```{r}
-peat_envs <- read_csv("input/peat_geodata_5-20-23.csv")
+peat_envs <- read_csv("../input/peat_geodata_5-20-23.csv")
 ```
 
 ```{r}
@@ -691,8 +691,7 @@ geo <- peat_envs %>%
 ### Load in bNTI
 ```{r}
 
-weig <- read_csv(
-  "input/Abisko_TWCD_bNTI_999_so_5_2_21.csv"
+weig <- read_csv("../Assembly_Metabolome/output/Abisko_TWCD_bNTI.csv"
 ) %>% 
   column_to_rownames(var = "...1")
 
@@ -704,8 +703,7 @@ weig[upper.tri(weig)] = t(weig)[upper.tri(weig)]
 ```{r}
 ## Bacteria BNTI
 
-samples_names <- read_csv(
-  "input/metadata_matched_MAGs_data_11-29-21.csv"
+samples_names <- read_csv("../Assembly_feature_level_microbiome/input/metadata_matched_MAGs_data.csv"
 )
 
 bacteria_bnti <- read_csv("input/weighted_BNTI_bacteria.csv") %>% 
@@ -1126,7 +1124,7 @@ final_fig1 <- ggarrange(partial_3, partial_4)
 final_fig1
 
 
-ggsave('output/Figure1_final.png', final_fig1, dpi = 300, height = 8, width = 15)
+ggsave('output/Figure_1_final.png', final_fig1, dpi = 300, height = 8, width = 15)
 
 
 ```

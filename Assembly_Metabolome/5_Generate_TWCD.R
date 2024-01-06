@@ -21,7 +21,6 @@ library(tidyverse)
 Sample_Name = "Abisko"
 
 # Load in data
-setwd("C:/Users/vivia/Desktop/PhD_2024/Metabolome_paper_2024/Metabolome_paper_FreireZapata-Tfaily_code/Assembly_Metabolome")
 
 mol = read.csv("output/Processed_Abisko_Mol.csv", row.names = 1)
 peak.2.peak = read.csv("output/Abisko_All-Trans_peak.2.peak.csv") # Load in the peak.2.peak file for all/bulk transformations

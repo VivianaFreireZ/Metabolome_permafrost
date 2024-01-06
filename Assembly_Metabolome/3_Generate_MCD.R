@@ -22,9 +22,6 @@ Sample_Name = "Abisko"
 
 # Load in data
 
-setwd("C:/Users/vivia/Desktop/PhD_2024/Metabolome_paper_2024/Metabolome_paper_FreireZapata-Tfaily_code/Assembly_Metabolome")
-
-
 mol = read.csv("output/Processed_Abisko_Mol.csv", row.names = 1)
 
 ### Ensuring that isotopic peaks are removed
