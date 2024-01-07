@@ -1,8 +1,10 @@
 ---
 title: "Metabolome paper - Supplementary Figure 2"
-author: "Viviana Freire"
+author: "Viviana Freire Zapata"
 date: "`r Sys.Date()`"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Loading libraries
@@ -22,7 +24,7 @@ All data is only for the **Bog Habitat**
 ## Metadata
 
 ```{r}
-metadata_bog <- read_csv("input/metadata_matched_MAGs_data_11-29-21.csv") %>% 
+metadata_bog <- read_csv("../Assembly_feature_level_microbiome/input/metadata_matched_MAGs_data.csv") %>% 
   filter(Habitat == 'Bog') %>% 
   select(c(SampleID, names_bnti)) %>% 
   rename(SampleID_1 = names_bnti) 
@@ -33,7 +35,7 @@ metadata_bog <- read_csv("input/metadata_matched_MAGs_data_11-29-21.csv") %>%
 
 ```{r}
 
-otu_table_bog <- read_csv("input/otu_normalized_df_3-4-22.csv")  %>% 
+otu_table_bog <- read_csv("../Assembly_feature_level_microbiome/input/otu_normalized.csv")  %>% 
   column_to_rownames(var = "genome") %>% 
   select(all_of(metadata_bog$SampleID_1)) %>% 
   t() %>% 
@@ -47,13 +49,13 @@ otu_table_bog <- read_csv("input/otu_normalized_df_3-4-22.csv")  %>%
 ## Microbes significantly correlated with BNTI clusters
 
 ```{r}
-bog_sig_cor_taxa <- read_csv('output/bog_sig_corr_taxa.csv')
+bog_sig_cor_taxa <- read_csv('../Metabolite_clusters/output/bog_sig_corr_taxa.csv')
 ```
 
 ## BNTI_feature contribution 
 
 ```{r}
-bog_bnti_contrib <- read_csv('input/bog_feature_microbe_tax_3-22-22.csv') %>% 
+bog_bnti_contrib <- read_csv('../Assembly_feature_level_microbiome/output/bog_feature_microbe_tax_3-22-22.csv') %>% 
   select(Member, Value, Direction)
   
 ```
@@ -61,7 +63,7 @@ bog_bnti_contrib <- read_csv('input/bog_feature_microbe_tax_3-22-22.csv') %>%
 ## CO2 data
 
 ```{r}
-bog_gas <- read_csv('input/bog_matrix_3-1-22.csv') %>% 
+bog_gas <- read_csv('../input/bog_matrix_3-1-22.csv') %>% 
     select(SampleID, Month, Habitat, CH4.mM__, CO2.mM__) %>% 
     drop_na()
 ```
@@ -69,7 +71,7 @@ bog_gas <- read_csv('input/bog_matrix_3-1-22.csv') %>%
 ## METABOLIC ANNOTATION
 
 ```{r}
-bog_annotation <- read_xlsx('input/bog_METABOLIC_result.xlsx', sheet = 1) %>% 
+bog_annotation <- read_xlsx('../input/bog_METABOLIC_result.xlsx', sheet = 1) %>% 
   select(Category, Function, Gene.abbreviation, Gene.name, contains('Hmm.presence')) %>% 
   pivot_longer(contains('Hmm.presence'), names_to = 'genome', values_to = 'Presence') %>% 
   mutate(genome = str_remove(genome, 'X'),

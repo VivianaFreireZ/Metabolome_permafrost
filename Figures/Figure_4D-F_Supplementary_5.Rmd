@@ -1,8 +1,10 @@
 ---
 title: "Metabolome paper - Figure 5D-F and Supplementary Figure 5"
-author: "Viviana Freire"
+author: "Viviana Freire Zapata"
 date: "`r Sys.Date()`"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Loading libraries
@@ -22,7 +24,7 @@ library(ggthemes)
 ## Taxonomy data
 
 ```{r}
-tax <- read_csv('input/network_nodes_taxonomy.csv') %>% 
+tax <- read_csv('../input/network_nodes_taxonomy.csv') %>% 
   mutate(Phylum = str_remove(Phylum, 'p__'))
 
 phylum_list <- sort(unique(tax$Phylum))
@@ -31,7 +33,7 @@ phylum_list <- sort(unique(tax$Phylum))
 ## Data for Sankey diagrams
 
 ```{r}
-sankey_files <- list.files(path = 'input', pattern = 'Sankey', 
+sankey_files <- list.files(path = '../input', pattern = 'Sankey', 
                            full.names = TRUE)
 names(sankey_files) <- c('Bog', 'Fen', 'Palsa')
 
@@ -56,7 +58,7 @@ sankey_df <- imap(sankey_files, function(file, y){
 ## Bacterial phylogenetic tree
 
 ```{r}
-tree <- read.tree('input/bac_arc_tree_comb.tree')
+tree <- read.tree('../Assembly_feature_level_microbiome/input/bac_arc_tree_comb.tree')
 ```
 
 ## Bacteria in networks
@@ -73,7 +75,7 @@ ids <-  network_otu %>%
 ## CAZymes
 
 ```{r}
-metabolic_files <- list.files(path = 'input', pattern = 'METABOLIC_networked', 
+metabolic_files <- list.files(path = '../input', pattern = 'METABOLIC_networked', 
                               recursive = TRUE, full.names = TRUE)
 
 names(metabolic_files) <- c('Bog', 'Fen', 'Palsa')
@@ -150,7 +152,7 @@ alluvial <- (sankey_plots$Palsa | sankey_plots$Bog | sankey_plots$Fen) +
   theme(plot.tag = element_text(size = 25),
         legend.position = 'bottom')
 
-ggsave('figures/Figure_4_sankey.png', alluvial, dpi = 300, width = 16, height = 7.5)
+ggsave('output/Figure_4_sankey.png', alluvial, dpi = 300, width = 16, height = 7.5)
 
 ```
 
@@ -228,7 +230,7 @@ plot_tree <- ggtree(annot_tree, layout = 'fan', open.angle = 25) +
                        palette = 'YlOrRd', direction = 1, na.value = 'white')
 plot_tree
 
-ggsave('figures/Supplementary_fig_5.png', plot_tree, dpi = 300, height = 8, width = 8)
+ggsave('output/Supplementary_fig_5.png', plot_tree, dpi = 300, height = 8, width = 8)
 ```
 
 
