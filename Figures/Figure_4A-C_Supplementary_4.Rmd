@@ -126,9 +126,8 @@ list_bac_hab <- imap(processed_nodes, function(nodes, hab){
 list_bac_hab_df <- do.call(rbind, list_bac_hab) %>% 
   left_join(id_microbes, by = c('Name' = 'New_ID'))
 
-write_csv(list_bac_hab_df, 'output/networked_bacteria.csv')
+write_csv(list_bac_hab_df, 'tables/networked_bacteria.csv')
 ```
-
 
 # Figure 4
 
@@ -150,8 +149,8 @@ network_graphs <- map2(processed_nodes, processed_edges, function(nodes, edges){
 
 ```{r}
 png('output/Figure_4A-C_networks.png', 
-    width = 9600, 
-    height = 4500,
+    width = 4956, 
+    height = 2124,
     res = 600)
 
 opar <- par(no.readonly = TRUE)
@@ -163,8 +162,8 @@ legend('bottom', fill = elcomp_colors,
        legend = names(elcomp_colors),
        #horiz = TRUE,
        bg = 'white',
-       ncol = 3,
-       cex = 1.7)
+       ncol = 4,
+       cex = .6)
 par(opar)
 
 dev.off()

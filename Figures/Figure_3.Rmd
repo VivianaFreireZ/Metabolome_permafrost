@@ -14,6 +14,8 @@ library(ggpubr)
 library(patchwork)
 library(readxl)
 library(ggtext)
+library(ggh4x)
+library(patchwork)
 library(tidyverse)
 ```
 
@@ -57,25 +59,34 @@ bog_sig_cor_taxa <- read_csv('../Metabolite_clusters/output/bog_sig_corr_taxa.cs
 ```{r}
 bog_bnti_contrib <- read_csv('../Assembly_feature_level_microbiome/output/bog_feature_microbe_tax_3-22-22.csv') %>% 
   select(Member, Value, Direction)
-  
+
 ```
 
 ## CO2 data
 
 ```{r}
 bog_gas <- read_csv('../input/bog_matrix_3-1-22.csv') %>% 
-    select(SampleID, Month, Habitat, CH4.mM__, CO2.mM__) %>% 
-    drop_na()
+  select(SampleID, Month, Habitat, CH4.mM__, CO2.mM__) %>% 
+  drop_na()
 ```
 
-## METABOLIC ANNOTATION
+## DRAM Annotation
 
 ```{r}
-bog_annotation <- read_xlsx('../input/bog_METABOLIC_result.xlsx', sheet = 1) %>% 
-  select(Category, Function, Gene.abbreviation, Gene.name, contains('Hmm.presence')) %>% 
-  pivot_longer(contains('Hmm.presence'), names_to = 'genome', values_to = 'Presence') %>% 
-  mutate(genome = str_remove(genome, 'X'),
-         genome = str_remove(genome, '.Hmm.presence'))
+bog_annotation_carbon <- read_xlsx('../input/1864_97percentmags_metabolism_summary.xlsx', 
+                                   sheet = 'carbon utilization') %>% 
+  mutate(group = 'Carbon Utilization')
+
+bog_annotation_energy <- read_xlsx('../input/1864_97percentmags_metabolism_summary.xlsx',
+                                   sheet = 'Energy') %>% 
+  mutate(group = 'Energy')
+
+bog_annotation <- rbind(bog_annotation_carbon, bog_annotation_energy) %>% 
+  pivot_longer(!c(gene_id, gene_description, module, header, subheader, group),
+               names_to = 'genome', values_to = 'value') %>% 
+  mutate(Presence = if_else(value > 0, 'Present', 'Absent'))
+
+
 ```
 
 
@@ -93,20 +104,20 @@ contrib_colors <- set_names(ggpubr::get_palette('RdYlBu', 5),
 
 ```{r}
 bog_sig_cor_contrib <- bog_sig_cor_taxa %>% 
-    left_join(bog_bnti_contrib, by = c('Microbe' = 'Member')) %>% 
-    filter(Direction != 'Insignificant') %>% 
-    drop_na(Direction) %>% 
-    select(Microbe, Direction, Phylum, Genus) %>% 
-    distinct()
+  left_join(bog_bnti_contrib, by = c('Microbe' = 'Member')) %>% 
+  filter(Direction != 'Insignificant') %>% 
+  drop_na(Direction) %>% 
+  select(Microbe, Direction, Phylum, Genus) %>% 
+  distinct()
 ```
 
 ```{r}
 processed_gas_table <- otu_table_bog %>% 
   filter(SampleID %in% bog_gas$SampleID) %>% 
-    pivot_longer(!SampleID, names_to = 'genome', values_to = 'abundance') %>% 
-    filter(abundance > 0) %>% 
-    inner_join(bog_gas, by = 'SampleID') %>% 
-    inner_join(bog_sig_cor_contrib, by = c('genome' = 'Microbe'))
+  pivot_longer(!SampleID, names_to = 'genome', values_to = 'abundance') %>% 
+  filter(abundance > 0) %>% 
+  inner_join(bog_gas, by = 'SampleID') %>% 
+  inner_join(bog_sig_cor_contrib, by = c('genome' = 'Microbe'))
 ```
 
 # CO2
@@ -138,14 +149,14 @@ bog_co2_plot <- processed_gas_table %>%
   filter(genome %in% bog_co2_corr$genome) %>% 
   mutate(Phylum = str_remove(Phylum, 'p__'),
          Genus = str_remove(Genus, 'g__'),
-         strip_label = paste0(Phylum, '<br>',
+         strip_label = paste0(Phylum, ' ',
                               '*', Genus, '*', '<br>',
                               '(', genome, ')')) %>% 
   ggplot(aes(x = abundance,
              y = CO2.mM__,
              color = Direction)) +
-  geom_point() +
-  geom_smooth(method = 'lm', se = FALSE) +
+  geom_point(size = 0.5) +
+  geom_smooth(method = 'lm', se = FALSE, linewidth = .3) +
   labs(title = 'Correlations with CO<sub>2</sub>',
        x = 'Normalized abundance',
        y = 'CO<sub>2</sub> [mM]',
@@ -154,12 +165,13 @@ bog_co2_plot <- processed_gas_table %>%
   stat_cor(aes(label = paste(after_stat(rr.label), after_stat(p.label), sep = '~`,`~')), 
            method = "spearman",
            color = 'black',
+           size = 2,
            show.legend = FALSE) +
   theme_bw() +
   theme(plot.title = element_markdown(face = 'bold', hjust = 0.5),
         axis.title.y = element_markdown(),
         strip.text.x = element_markdown()) +
-  facet_wrap(~strip_label, scales = 'free_x', ncol = 2)
+  facet_wrap(~strip_label, scales = 'free_x', ncol = 3)
 
 bog_co2_plot  
 ```
@@ -194,26 +206,27 @@ bog_ch4_plot <- processed_gas_table %>%
   filter(genome %in% bog_ch4_corr$genome) %>% 
   mutate(Phylum = str_remove(Phylum, 'p__'),
          Genus = str_remove(Genus, 'g__'),
-         strip_label = paste0(Phylum, '<br>',
+         strip_label = paste0(Phylum, ' ',
                               '*', Genus, '*', '<br>',
                               '(', genome, ')')) %>% 
   ggplot(aes(x = abundance,
              y = CH4.mM__,
              color = Direction)) +
-  geom_point() +
-  geom_smooth(method = 'lm', se = FALSE) +
+  geom_point(show.legend = FALSE, size = 0.5) +
+  geom_smooth(method = 'lm', se = FALSE, show.legend = FALSE, linewidth = .3) +
   labs(title = 'Correlations with CH<sub>4</sub>',
        y = 'CH<sub>4</sub> [mM]',
        x = 'Normalized abundance') +
   scale_color_manual(values = contrib_colors) +
   stat_cor(aes(label = paste(after_stat(rr.label), after_stat(p.label), sep = '~`,`~')), 
            method = "spearman",
+           size = 2,
            color = 'black',
            show.legend = FALSE) +
   theme_bw() +
   theme(plot.title = element_markdown(face = 'bold', hjust = 0.5),
         axis.title.y = element_markdown(),
-        legend.position = 'none',
+        # legend.position = 'none',
         strip.text.x = element_markdown()) +
   facet_wrap(~strip_label, scales = 'free_x', ncol = 2)
 
@@ -226,9 +239,24 @@ bog_ch4_plot
 ```{r}
 bog_annotation_filt <- bog_annotation %>% 
   filter(genome %in% c(bog_co2_corr$genome, bog_ch4_corr$genome),
-         Presence == 'Present')
+         header != 'CAZY',
+         Presence == 'Present') %>% 
+  mutate(
+    inner_level = case_when(
+      group == 'Carbon Utilization' & is.na(subheader) ~ header,
+      group == 'Carbon Utilization' & !is.na(subheader) ~ subheader,
+      group == 'Energy' ~ module
+    ),
+    outer_level = case_when(
+      group == 'Carbon Utilization' & !is.na(header) ~ header,
+      group == 'Carbon Utilization' & subheader == 'Polyphenolics Cleavage' ~ 'Polyphenols',
+      group == 'Energy' ~ header
+    )
+    
+  )
 
-bog_annotation_plot <- bog_annotation_filt %>% 
+bog_annotation_plot_carbon <- bog_annotation_filt %>% 
+  filter(group == 'Carbon Utilization') %>% 
   mutate(genome = factor(genome, levels = c('20110800_S2M_3',
                                             '20120800_E1D_14',
                                             '20120700_S1D_25',
@@ -236,17 +264,23 @@ bog_annotation_plot <- bog_annotation_filt %>%
                                             '20120600_S1S_4'))) %>% 
   ggplot() +
   geom_tile(aes(x = genome,
-                y = Gene.name),
+                y = gene_id),
             fill = 'tomato3',
             color = 'white') +
   theme_bw() +
-  facet_grid(rows = vars(Category),
-             scales = 'free_y',
-             space = 'free') +
+  facet_grid2(inner_level ~ .,
+               scales = 'free_y',
+               space = 'free',
+               strip = strip_nested(size = 'variable',
+                                    background_y = list(
+                                      element_rect(fill = 'white')
+                                    ),
+                                    by_layer_y = TRUE)) +
+  labs(title = 'Carbon Utilization') +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_discrete(expand = c(0, 0)) +
-  theme(axis.title = element_blank(),
-        #axis.text.y = element_blank(),
+  theme(plot.title = element_text(face = 'bold', hjust = 0.5),
+        axis.title = element_blank(),
         axis.ticks.y = element_blank(),
         strip.text.y = element_text(angle = 0),
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -254,24 +288,210 @@ bog_annotation_plot <- bog_annotation_filt %>%
         panel.grid.minor = element_blank(),
         strip.placement = 'outside')  
 
-bog_annotation_plot
+bog_annotation_plot_carbon
+
+bog_annotation_plot_energy <- bog_annotation_filt %>% 
+  filter(group == 'Energy',
+         outer_level != 'Nitrogen',
+         !(outer_level == 'Sulfur' & is.na(inner_level))) %>% 
+  mutate(genome = factor(genome, levels = c('20110800_S2M_3',
+                                            '20120800_E1D_14',
+                                            '20120700_S1D_25',
+                                            '20140700_E14_11',
+                                            '20120600_S1S_4'))) %>% 
+  ggplot() +
+  geom_tile(aes(x = genome,
+                y = gene_id),
+            fill = 'purple4',
+            color = 'white') +
+  theme_bw() +
+  facet_nested(outer_level + inner_level ~ .,
+               scales = 'free_y',
+               space = 'free',
+               nest_line = element_line(linetype = 2),
+               strip = strip_nested(size = 'variable',
+                                    background_y = list(
+                                      element_rect(fill = 'white'),
+                                      NULL
+                                    ),
+                                    by_layer_y = TRUE)) +
+  labs(title = 'Energy') +
+  # scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  theme(plot.title = element_text(face = 'bold', hjust = 0.5),
+        axis.title = element_blank(),
+        axis.ticks.y = element_blank(),
+        strip.text.y = element_text(angle = 0),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(.1, 'lines'),
+        strip.placement = 'outside')  
+
+bog_annotation_plot_energy
 ```
 
 # Merging final figure
 
 ```{r}
-final_figure <- (((bog_co2_plot / bog_ch4_plot) + 
-                    plot_layout(guides = 'collect',
-                                heights = c(3, 1.8))) | bog_annotation_plot) +
-  plot_layout(widths = c(2, 1)) +
+sub1 <- bog_co2_plot + bog_ch4_plot +
+  plot_layout(guides = 'collect',
+              widths = c(2.75, 2)) +
   plot_annotation(tag_levels = 'A') &
-  theme(plot.tag = element_text(size = 20))
+  theme(text = element_text(size = 5),
+        plot.tag = element_text(size = 8))
 
-final_figure
+sub2 <- bog_annotation_plot_carbon + bog_annotation_plot_energy +
+  plot_annotation(tag_levels = list('C', 'D')) &
+  theme(text = element_text(size = 5),
+        plot.tag = element_text(size = 8),
+        axis.text.y = element_text(size = 3))
 
-ggsave('figures/Figure_3.png', final_figure, dpi = 300, height = 13.5, width = 15)
+final <- ggarrange(sub1, sub2, nrow = 2, heights = c(1, 3))
+
+ggsave('output/Figure_3.png', final, dpi = 300, height = 210, 
+       width = 180, units = 'mm')
 ```
 
+
+# GHG correlations without filtering MAGs that contributed to assembly
+
+
+```{r}
+processed_gas_table <- otu_table_bog %>%
+  filter(SampleID %in% bog_gas$SampleID) %>%
+    pivot_longer(!SampleID, names_to = 'genome', values_to = 'abundance') %>%
+    filter(abundance > 0) %>%
+    inner_join(bog_gas, by = 'SampleID') %>% 
+  filter(genome %in% bog_sig_cor_taxa$Microbe)
+```
+
+
+# CO2 concentration
+
+## Calculating correlation
+
+```{r}
+bog_co2_corr <- processed_gas_table %>% 
+  group_by(genome) %>% 
+  nest() %>% 
+  mutate(co2_rho = map(data, function(df){
+    corr <- Hmisc::rcorr(df$abundance, df$CO2.mM__, type = 'spearman')
+    corr$r[1,2]
+  })) %>% 
+  mutate(co2_pval = map(data, function(df){
+    corr <- Hmisc::rcorr(df$abundance, df$CO2.mM__, type = 'spearman')
+    corr$P[1,2]
+  })) %>% 
+  mutate(pval_adj = p.adjust(co2_pval, method = 'fdr')) %>% 
+  filter(pval_adj < 0.05)
+
+```
+
+## Joining with Taxonomy
+
+```{r}
+
+otu_table_bog <- read_csv("../Assembly_feature_level_microbiome/input/otu_normalized.csv") 
+
+otu_taxa <- otu_table_bog %>% 
+  dplyr::select(c(genome, GTDB_v2_r207)) %>% 
+  separate_wider_delim(GTDB_v2_r207, delim = ";", names = c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"))
+
+bog_co2_corr_tax <- bog_co2_corr %>% 
+  left_join(otu_taxa, by = "genome") %>% 
+  left_join(bog_bnti_contrib, by = c("genome" = "Member"))
+
+temp <- bog_co2_corr_tax %>% 
+  select(-data) %>% 
+  mutate(co2_rho = as.numeric(co2_rho),
+         co2_pval = as.numeric(co2_pval))
+
+write_csv(temp, "tables/Bog_mags_corr_CO2.csv")
+```
+
+# CH4
+
+## Calculating correlation
+
+```{r}
+bog_ch4_corr <- processed_gas_table %>% 
+  group_by(genome) %>% 
+  nest() %>% 
+  mutate(ch4_rho = map(data, function(df){
+    corr <- Hmisc::rcorr(df$abundance, df$CH4.mM__, type = 'spearman')
+    corr$r[1,2]
+  })) %>% 
+  mutate(ch4_pval = map(data, function(df){
+    corr <- Hmisc::rcorr(df$abundance, df$CH4.mM__, type = 'spearman')
+    corr$P[1,2]
+  })) %>% 
+  mutate(pval_adj = p.adjust(ch4_pval, method = 'fdr')) %>% 
+  filter(pval_adj < 0.05)
+```
+
+## Joining with Taxonomy
+
+```{r}
+
+bog_ch4_corr_tax <- bog_ch4_corr %>% 
+  left_join(otu_taxa, by = "genome")%>% 
+  left_join(bog_bnti_contrib, by = c("genome" = "Member"))
+
+
+temp <- bog_ch4_corr_tax %>% 
+  dplyr::select(!data) %>% 
+  mutate(ch4_rho = as.numeric(ch4_rho),
+         ch4_pval = as.numeric(ch4_pval))
+
+
+write_csv(temp, "tables/Bog_mags_corr_CH4.csv")
+```
+
+
+## Plotting 
+
+Only significant
+
+```{r}
+
+bog_ch4_plot <- processed_gas_table %>% 
+  left_join(otu_taxa, by = "genome") %>% 
+  filter(genome %in% bog_ch4_corr_tax$genome) %>% 
+  mutate(Phylum = str_remove(Phylum, 'p__'),
+         Genus = str_remove(Genus, 'g__'),
+         strip_label = paste0(Phylum, '<br>',
+                              '*', Genus, '*', '<br>',
+                              '(', genome, ')')) %>% 
+  ggplot(aes(x = abundance,
+             y = CH4.mM__,
+             #color = Direction
+             )) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE) +
+  labs(title = 'Correlations with CH<sub>4</sub>',
+       y = 'CH<sub>4</sub> [mM]',
+       x = 'Normalized abundance') +
+  #scale_color_manual(values = contrib_colors) +
+  stat_cor(aes(label = paste(after_stat(rr.label), after_stat(p.label), sep = '~`,`~')), 
+           method = "spearman",
+           color = 'black',
+           show.legend = FALSE) +
+  theme_bw() +
+  theme(plot.title = element_markdown(face = 'bold', hjust = 0.5),
+        axis.title.y = element_markdown(),
+        legend.position = 'none',
+        strip.text.x = element_markdown()) +
+  facet_wrap(~strip_label, scales = 'free_x')
+
+
+bog_ch4_plot  
+
+
+ggsave("output/Bog_cluster_correlations_CH4_3_6_2024.png", dpi = 300, height = 13.5, width = 15)
+
+
+```
 
 
 

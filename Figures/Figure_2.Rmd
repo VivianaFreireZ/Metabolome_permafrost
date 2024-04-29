@@ -27,7 +27,6 @@ library(tidyverse)
 
 ```{r}
 habitat <- c('Bog', 'Fen', 'Palsa')
-getwd()
 micro_cor_files <- list.files(path = '../Metabolite_clusters/output/',
                               pattern = 'sig_corr_taxa',
                               recursive = TRUE,
@@ -143,8 +142,8 @@ taxa_list <- taxa %>%
   unique() %>% 
   str_remove(., 'p__')
 
-phyl_colors <- set_names(ggpubr::get_palette('jco', length(sort(taxa_list))),
-                         nm = sort(taxa_list))
+phyl_colors <- set_names(c(ggpubr::get_palette('jco', length(sort(taxa_list))), 'transparent'),
+                         nm = c(sort(taxa_list), ''))
 
 habitat_colors <- c('Palsa' = '#703C1B', 'Bog' = '#058000', 'Fen' = '#0001FF')
 
@@ -181,7 +180,8 @@ network_graph <- pmap(
              #                   type == 'micro' ~ 'circle',
              #                   TRUE ~ 'square'),
              Phylum = case_when(type == 'Bacteria' ~ str_remove(Phylum, 'p__')),
-             Phylum = factor(Phylum, levels = str_remove(sort(names(phyl_colors)), 'p__')),
+             Phylum = ifelse(is.na(Phylum), '', Phylum),
+             Phylum = factor(Phylum, levels = str_remove(names(phyl_colors), 'p__')),
              Other_nodes = case_when(type == 'Met. Cluster' ~ 'Met. Cluster',
                                      type == 'Env. Factor' ~ 'Env. Factor'),
              Other_nodes = factor(Other_nodes, levels = c('Met. Cluster', 'Env. Factor')),
@@ -207,6 +207,38 @@ network_graph <- pmap(
 ## Plotting network with gg_graph
 
 ```{r}
+
+legend_p <- tibble(Taxa = names(phyl_colors),
+                   `Node Type` = c(rep('Met. Cluster', 4), 
+                                   rep('Bacteria', 4),
+                                   rep('Env. Factor', 3)),
+                   rho = seq(-0.7, 0.7, length.out = 11)) %>% 
+  mutate(Taxa = factor(Taxa, levels = names(phyl_colors)),
+         `Node Type` = factor(`Node Type`, 
+                              levels = c('Met. Cluster', 'Bacteria', 'Env. Factor'))) %>% 
+  ggplot() +
+  geom_point(aes(x = Taxa,
+                 y = 1,
+                 color = Taxa,
+                 shape = `Node Type`),
+             alpha = 0.75) +
+  geom_boxplot(aes(x = Taxa,
+                   y = 1,
+                   fill = rho)) +
+  scale_color_manual(values = phyl_colors) +
+  scale_fill_distiller(palette = 'RdBu', limits = c(-0.7, 0.7)) +
+  guides(color = guide_legend(nrow = 2),
+         shape = guide_legend(nrow = 2)) +
+  labs(fill = "Spearman's\nrho") +
+  theme_bw() +
+  theme(legend.position = 'bottom',
+        legend.text = element_text(size = 5),
+        legend.title = element_text(size = 7),
+        legend.key.size = unit(.75, 'line'))
+
+legend <- get_legend(legend_p)
+
+set.seed(123)
 gg_network <- imap(network_graph, function(x, y){
   gg <- tbl_graph(nodes = x$nodes, edges = x$edges, node_key = 'id')
   
@@ -215,36 +247,37 @@ gg_network <- imap(network_graph, function(x, y){
                   aes(edge_color = rho,
                       edge_width = arho)) +
     scale_edge_color_distiller(palette = 'RdBu', limits = c(-.7, .7)) +
-    scale_edge_width(range = c(0.5, 1)) +
+    scale_edge_width(range = c(0.3, .7)) +
     guides(edge_width = 'none') +
     geom_node_point(aes(color = Phylum,
                         shape = type),
-                    size = 4) +
-    scale_color_manual(values = phyl_colors, na.value = 'transparent', drop = FALSE) +
-    scale_shape_manual(values = c('Met. Cluster' = 15, 'Bacteria' = 16, 'Env. Factor' = 17), drop = FALSE) +
+                    size = 2) +
+    scale_color_manual(values = phyl_colors, drop = FALSE) +
+    #guides(color = guide_legend(override.aes = list(color = phyl_colors))) +
+    scale_shape_manual(values = c('Met. Cluster' = 15, 'Bacteria' = 16, 'Env. Factor' = 17),
+                       drop = FALSE) +
     new_scale_color() +
     geom_node_point(aes(color = Other_nodes,
                         shape = type),
-                    size = 6, show.legend = FALSE) +
+                    size = 3, show.legend = FALSE) +
     guides(shape = guide_legend(override.aes = list(color = c('black', 'black', 'forestgreen'),
                                                     fill = c('black', 'black', 'forestgreen')))) +
-    scale_color_manual(values = c('Met. Cluster' = 'black', 'Env. Factor' = 'forestgreen'), 
+    scale_color_manual(values = c('Met. Cluster' = 'black', 'Env. Factor' = 'forestgreen'),
                        na.value = 'transparent', drop = FALSE) +
-    geom_node_label(aes(label = label), hjust = 'inward', nudge_y = -0.5, repel = TRUE) +
+    geom_node_label(aes(label = label), hjust = 0.5, nudge_y = -0.5, repel = TRUE, size = 1.8) +
     labs(title = y,
          shape = 'Node\nType',
          edge_color = "Spearman's\nrho") +
     theme_void() +
-    theme(legend.position = 'bottom',
+    theme(legend.position = 'none',
           panel.border = element_rect(color = 'black', fill = NA),
-          plot.title = element_text(face = 'bold', hjust = 0.5))
+          plot.title = element_text(face = 'bold', hjust = 0.5, size = 8))
 })
 
 gg_network_final <- (gg_network$Palsa | gg_network$Bog | gg_network$Fen ) +
-  plot_layout(guides = 'collect') &
-  theme(legend.position = 'bottom')
+  plot_layout(guides = 'collect')
 
-gg_network_final
+
 ```
 
 # Biochemical index plot
@@ -287,9 +320,12 @@ idx_plot <- rep_df_final %>%
   scale_fill_manual(values = habitat_colors) +
   stat_pvalue_manual(data = idx_stat, label = 'p.adj.signif', hide.ns = TRUE) +
   theme_bw() +
-  theme(strip.text.y = element_text(angle = 0),
+  theme(strip.text.y = element_text(angle = 0, size = 6),
         axis.title.x = element_blank(),
-        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
+        axis.text.y = element_text(size = 5),
+        axis.title.y = element_text(size = 7),
+        strip.text.x = element_text(size = 6),
         legend.position = 'none')
 
 idx_plot
@@ -313,12 +349,20 @@ contrib_plot <- bnti_counts_df %>%
   facet_grid(cols = vars(Habitat),
              scales = 'free',
              space = 'free_x') +
-  labs(fill = 'Feature Contribution') +
+  labs(fill = 'Feature Contribution',
+       y = 'Percentage [%]') +
   scale_y_continuous(labels = ~ scales::percent(.x, scale = 1)) +
-  scale_fill_manual(values = contrib_colors, drop = FALSE) +
+  scale_fill_manual(values = contrib_colors) +
   theme_bw() +
-  theme(axis.title = element_blank(),
-        axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
+        axis.text.y = element_text(size = 5),
+        axis.title.y = element_text(size = 7),
+        legend.text = element_text(size = 5),
+        legend.title = element_text(size = 7),
+        strip.text = element_text(size = 6),
+        legend.position = 'bottom',
+        legend.key.size = unit(.5, 'line'))
 
 contrib_plot
 ```
@@ -338,12 +382,21 @@ class_plot <- rep_df_final %>%
   facet_grid(cols = vars(Habitat),
              scales = 'free',
              space = 'free_x') +
-  labs(fill = 'Elemental Composition') +
+  labs(fill = 'Elemental Composition',
+       y = 'Percentage [%]') +
   scale_y_continuous(labels = scales::percent) +
   scale_fill_manual(values = ggpubr::get_palette(palette = 'Set3', 10)) +
   theme_bw() +
-  theme(axis.title = element_blank(),
-        axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
+        axis.text.y = element_text(size = 5),
+        axis.title.y = element_text(size = 7),
+        legend.text = element_text(size = 5),
+        legend.title = element_text(size = 7),
+        strip.text = element_text(size = 6), 
+        legend.position = 'bottom',
+        legend.key.size = unit(.5, 'line'))
+
 
 class_plot
 ```
@@ -351,14 +404,16 @@ class_plot
 # Finalizing Figure 2
 
 ```{r}
-figure_2 <- (gg_network_final/ (idx_plot | (contrib_plot / class_plot))) +
-  plot_annotation(tag_levels = list(c('A', '', '', 'B', 'C', 'D'))) &
-  theme(plot.tag = element_text(size = 20))
+figure_2 <- (gg_network_final/ legend / (idx_plot | (contrib_plot / class_plot))) +
+  plot_layout(heights = c(5, 1, 6)) +
+  plot_annotation(tag_levels = list(c('A', '', '', '', 'B', 'C', 'D'))) &
+  theme(plot.tag = element_text(size = 7))
 
 
-figure_2
+#figure_2
 
-ggsave('output/Figure_2.png', figure_2, dpi = 300, width = 20, height = 12)
+ggsave('output/Figure_2.png', figure_2, dpi = 300,  width = 215, 
+       height = 180, units = 'mm')
 ```
 
 

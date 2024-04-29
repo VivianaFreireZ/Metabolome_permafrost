@@ -1,0 +1,155 @@
+---
+title: "Phylogenetic signal microbes"
+author: "Viviana Freire Zapata"
+date: "1-11-23"
+output:
+  html_document:
+    df_print: paged
+editor_options: 
+  chunk_output_type: console
+---
+
+# Loading libraries
+```{r}
+require(reshape2)
+require(ggplot2)
+require(vegan)
+library(dbplyr)
+library(ggsci)
+library(rstatix)
+library(ggpubr)
+library(ggrepel)
+library(grid)
+library(gridExtra)
+library(RColorBrewer)
+library(SYNCSA)
+library(ggnewscale)
+library(analogue)
+library(picante)
+library(phyloseq)
+library(adephylo)
+library(ggbeeswarm)
+library(tidyverse)
+library(patchwork)
+```
+
+
+# Bacteria Mantel Correlation 
+
+### Includes code from [Doherty, et al 2020](https://github.com/sljarvis2/Doherty_etal_2020/blob/main/Doherty_etal_2020_PhyloSignal.R))
+
+## Loading data
+
+```{r}
+tree <- read_tree('../Assembly_feature_level_microbiome/input/bac_arc_tree_comb.tree')
+
+metadata <-  read_csv("../Assembly_feature_level_microbiome/input/metadata_matched_MAGs_data.csv") %>% 
+  select(c(SampleID, Month, Habitat, Core, 
+           Depth, Year, Sampletype, names_bnti)) %>% 
+  rename(SampleID_1 = names_bnti)
+
+otu <- read_csv('../Assembly_feature_level_microbiome/input/otu_normalized.csv') %>% 
+  rename(!!(set_names(metadata$SampleID_1, metadata$SampleID))) %>%
+  separate_wider_delim(GTDB_v2_r207, delim = ";", names = c("Domain", "Phylum",
+                                                            "Class", "Order", 
+                                                            "Family", "Genus", "Species")) %>% 
+  select(!c(Domain, Phylum, Class, Order, Family, Genus, Species)) %>% 
+  pivot_longer(!genome, names_to = 'SampleID', values_to = 'abundance') %>% 
+  pivot_wider(names_from = 'genome', values_from = 'abundance') %>% 
+  column_to_rownames(var = 'SampleID')
+
+geo_data <- read_csv('../input/peat_geodata_5-20-23.csv')
+
+geo_data <- geo_data %>% 
+  select(!c(`...19`, Notes__.DepthInfo, Notes__.Biogeochemistry, Sampletype,
+            DepthMin__, DepthMax__, ALD.cm, d13C_peat__, d15N_peat__))
+
+
+```
+
+
+### Testing phylogenetic signal of all data before inferring ecological processes
+
+```{r}
+# Matching OTUs and tree
+
+geo_match <- geo_data %>% 
+  filter(SampleID %in% rownames(otu)) %>% 
+  column_to_rownames(var = 'SampleID') %>% 
+  drop_na()
+
+otu_temp <- otu[rownames(otu) %in% rownames(geo_match),]
+otu_temp <- otu_temp[, colSums(otu_temp) > 0]
+
+phylo_match <- match.phylo.data(tree, as.data.frame(t(otu_temp)))
+match_otu <- as.data.frame(t(phylo_match$data))
+match_tree <- phylo_match$phy
+
+# All biogeochemical variables
+
+match_otu <- match_otu[rownames(geo_match),]
+
+```
+
+### Calculate the abundance-weighted mean environmental optima for each MAG
+
+```{r}
+# Calculate the weighted average optima for each species for each environmental variable
+
+optima_soil_t <- as.data.frame(optima(match_otu, geo_match$`T, soil (C)`))
+
+optima_depth <- as.data.frame(optima(match_otu, geo_match$DepthAvg__))
+
+optima_carbon <- as.data.frame(optima(match_otu, geo_match$C.percent__))
+
+optima_nitrogen <- as.data.frame(optima(match_otu, geo_match$N.percent__))
+
+optima_cn <- as.data.frame(optima(match_otu, geo_match$CtoN_wt))
+
+optima_precipitation <- as.data.frame(optima(match_otu,
+                                             geo_match$Precipitation_3day_accumulation_mm))
+
+# Merging optima
+
+all_optima <- list('soil_t' = optima_soil_t, 
+                   'depth' = optima_depth, 
+                   'Carbon' = optima_carbon, 
+                    'Nitrogen' = optima_nitrogen, 
+                   'C_N' = optima_cn, 
+                   'precipitation' = optima_precipitation)
+# 
+# colnames(all_optima) <- c('soil_t', 'depth', 'Carbon', 'Nitrogen',
+#                           'C_N', 'precipitation')
+
+zz <- dist(all_optima)
+
+niche_matrix <- map(all_optima, function(x){
+  dist(x, method = 'euclidean')
+})
+
+phylogenetic_distance <- cophenetic(match_tree)
+
+```
+
+### Mantel Correlog
+
+```{r}
+
+correlogs <- map(niche_matrix, function(x){
+  mc <- mantel.correlog(phylogenetic_distance, 
+                        x, 
+                        r.type = 'pearson', 
+                        nperm = 999)
+})
+
+png('output/Supplementary_8.png', 
+    res = 300, units = 'in', width = 8, height = 8)
+par(mfrow = c(3, 2))
+iwalk(correlogs, function(x, y){
+  plot(x)
+  title(main = y)
+})
+dev.off()
+
+```
+

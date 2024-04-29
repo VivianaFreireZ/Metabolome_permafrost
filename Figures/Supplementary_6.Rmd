@@ -1,0 +1,192 @@
+---
+title: "Supplementary Figure 6"
+author: "Viviana Freire Zapata"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Load libraries
+
+```{r setup, include=FALSE}
+library(readxl)
+library(ggpubr)
+library(ggh4x)
+library(ggtext)
+library(tidyverse)
+```
+
+# Load data
+
+## Load metatranscriptomics data
+
+```{r}
+## Loading metaT processed tables
+
+metaT_genomes <- read_tsv("../input/Emerge_metaTs_processed_v7/metaT_genomes.tsv")
+
+metaT_path <- read_tsv("../input/Emerge_metaTs_processed_v7/metaT_pathways.tsv")
+
+## Loading expression 
+
+metaT_path_ex <- read_csv("../input/Emerge_metaTs_processed_v7/metaT_pathway_exp.csv")
+```
+
+## Load data from previous analysis
+
+```{r}
+mag_id <- read_csv("../input/microbe_menap_ids.csv")
+
+taxonomy <- read_csv("../Assembly_feature_level_microbiome/input/otu_normalized.csv") %>% 
+  select(c(genome, GTDB_v2_r207)) %>% 
+  separate_wider_delim(GTDB_v2_r207, delim = ";", names = c("Domain", "Phylum", "Class", "Order", 
+                                                            "Family","Genus", "Species"))
+
+palsa <- read_tsv("../input/palsa_twcd_node_table_annotated_5-24-23.tsv") %>% 
+  filter(!str_detect(Name, "mass")) %>% 
+  select(c(Name)) %>% 
+  left_join(mag_id, by = c("Name" = "New_ID")) %>% 
+  rename(genomeID = OTU) %>% 
+  left_join(taxonomy, by = c("genomeID" = 'genome'))
+
+
+
+bog <- read_tsv("../input/bog_twcd_node_table_annotated_5-24-23.tsv") %>% 
+  filter(!str_detect(Name, "mass")) %>% 
+  select(c(Name)) %>% 
+  left_join(mag_id, by = c("Name" = "New_ID")) %>% 
+  rename(genomeID = OTU) %>% 
+  left_join(taxonomy, by = c("genomeID" = 'genome'))
+
+
+fen <- read_tsv("../input/fen_twcd_node_table_annotated_5-24-23.tsv") %>% 
+  filter(!str_detect(Name, "mass")) %>% 
+  select(c(Name)) %>% 
+  left_join(mag_id, by = c("Name" = "New_ID")) %>% 
+  rename(genomeID = OTU) %>% 
+  left_join(taxonomy, by = c("genomeID" = 'genome'))
+```
+
+## Filter only 2012 samples
+
+```{r}
+metaT_2012_ex <- metaT_path_ex %>% 
+  filter(str_detect(`SampleID__`, "MainAutochamber.2012"))
+```
+
+# Filtering expression data per habitat
+
+## Palsa
+
+```{r}
+metaT_exp_palsa <- metaT_2012_ex %>% 
+  filter(genome %in% palsa$genomeID)%>% 
+  left_join(taxonomy, by = 'genome') %>% 
+  mutate(habitat = case_when(str_detect(SampleID__, 'E') ~ 'Fen',
+                             str_detect(SampleID__, 'P') ~ 'Palsa',
+                             TRUE ~ 'Bog'))
+
+palsa_relative <- metaT_exp_palsa %>% 
+  filter(habitat == "Palsa") %>% 
+  group_by(Phylum, pathway, subpathway, SampleID__) %>% 
+  summarise(sum_phyla_per_path = sum(tpm)) %>% 
+  group_by(SampleID__, pathway) %>% 
+  mutate(total_path_sample = sum(sum_phyla_per_path),
+         perc_phyla_per_path = sum_phyla_per_path / total_path_sample,
+         habitat = 'Palsa') %>% 
+  ungroup()
+```
+
+## Bog
+
+```{r}
+metaT_exp_bog <- metaT_2012_ex %>% 
+  filter(genome %in% bog$genomeID) %>% 
+  left_join(taxonomy, by = 'genome')%>% 
+  mutate(habitat = case_when(str_detect(SampleID__, 'E') ~ 'Fen',
+                             str_detect(SampleID__, 'P') ~ 'Palsa',
+                             TRUE ~ 'Bog'))
+
+bog_relative <- metaT_exp_bog %>% 
+  filter(habitat == "Bog") %>% 
+  group_by(Phylum, pathway,subpathway, SampleID__) %>% 
+  summarise(sum_phyla_per_path = sum(tpm)) %>% 
+  group_by(SampleID__, pathway) %>% 
+  mutate(total_path_sample = sum(sum_phyla_per_path),
+         perc_phyla_per_path = sum_phyla_per_path / total_path_sample,
+         habitat = 'Bog') %>% 
+  ungroup()
+```
+
+## Fen
+
+```{r}
+metaT_exp_fen <- metaT_2012_ex %>% 
+  filter(genome %in% fen$genomeID) %>% 
+  left_join(taxonomy, by = 'genome')%>% 
+  mutate(habitat = case_when(str_detect(SampleID__, 'E') ~ 'Fen',
+                             str_detect(SampleID__, 'P') ~ 'Palsa',
+                             TRUE ~ 'Bog'))
+fen_relative <- metaT_exp_fen %>% 
+  filter(habitat == "Fen") %>% 
+  group_by(Phylum, pathway,subpathway, SampleID__) %>% 
+  summarise(sum_phyla_per_path = sum(tpm)) %>% 
+  group_by(SampleID__, pathway) %>% 
+  mutate(total_path_sample = sum(sum_phyla_per_path),
+         perc_phyla_per_path = sum_phyla_per_path / total_path_sample,
+         habitat = 'Fen') %>% 
+  ungroup()
+```
+
+# Plotting all pathways
+
+```{r}
+pathway_all <- rbind(palsa_relative, bog_relative, fen_relative)
+
+all_plot <- pathway_all %>% 
+  mutate(Phylum = str_remove(Phylum, 'p__'),
+         habitat = factor(habitat, levels = c('Palsa', 'Bog', 'Fen'))) %>% 
+  ggplot() +
+  geom_tile(aes(x = SampleID__,
+                y = subpathway,
+                fill = sum_phyla_per_path),
+            color = 'white') +
+  facet_nested(pathway ~ habitat + Phylum, 
+               scales = 'free', 
+               space = 'free',
+               nest_line = element_line(),
+               strip = strip_nested(size = 'variable',
+                                    background_x = list(
+                                      element_rect(fill = 'white'),
+                                      element_rect(fill = 'white', color = 'white')
+                                    ),
+                                    text_x = elem_list_text(
+                                      angle = c(0, 90)
+                                    ),
+                                    by_layer_x = TRUE)) +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_fill_distiller(palette = 'YlOrRd', direction = 1,
+                       trans = scales::log10_trans(),
+                       labels = scales::label_number(),
+                       breaks = c(c(0.1, 1, 10, 100, 1000, 10000))) +
+  labs(fill = 'TPM') +
+  theme_bw() +
+  theme(axis.text.x = element_blank(),
+        axis.title = element_blank(),
+        strip.text.y = element_text(angle = 0),
+        strip.text.x = element_text(angle = 90),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(.1, 'lines'))
+
+all_plot
+
+ggsave('output/Supplementary_fig_6.png', all_plot, dpi = 300, height = 10, width = 15)
+```
+
+
+
+
+

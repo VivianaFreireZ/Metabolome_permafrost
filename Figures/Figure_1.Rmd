@@ -21,6 +21,7 @@ library(phyloseq)
 library(ggridges)
 library(patchwork)
 library(corrplot)
+library(ggh4x)
 library(tidyverse)
 ```
 
@@ -145,6 +146,41 @@ rcbc_data$Habitat <- factor(rcbc_data$Habitat, levels = c("Palsa", "Bog", "Fen")
 
 ```
 
+```{r}
+# hist(bnti_data$value)
+# 
+# bnti_data_palsa <- bnti_data %>%
+#   filter(Habitat == 'Palsa')
+# 
+# bnti_data_BOG <- bnti_data %>%
+#   filter(Habitat == 'Bog')
+# 
+# bnti_data_fen <- bnti_data %>%
+#   filter(Habitat == 'Fen')
+# 
+# shapiro_test(bnti_data_palsa$value)
+# 
+# shapiro_test(bnti_data_BOG$value)
+# 
+# shapiro_test(bnti_data_fen$value)
+# 
+# png('histogram_bnti_figure.png', res = 300, height = 1500, width = 1800)
+# 
+# par(mfrow = c(2, 2))
+# a <- hist(bnti_data_palsa$value, main = 'BNTI palsa')
+# 
+# b <- hist(bnti_data_BOG$value, main = 'BNTI bog')
+# 
+# c <- hist(bnti_data_fen$value, main = 'BNTI fen')
+# 
+# dev.off()
+
+
+
+```
+
+
+
 ### BNTI plot all metabolites
 
 ```{r}
@@ -169,7 +205,7 @@ stat_df <- bnti_data_within %>%
 #Violin plot
 
 bp_group_vio_so <- bnti_data_within %>% 
-  mutate(Type = "Bulk metabolites") %>% 
+  mutate(Type = "Metabolome") %>% 
   ggplot(aes(x = Habitat, y = value, fill = Habitat))+
   geom_boxplot(width = 0.2, show.legend = FALSE) +
   geom_violin(alpha = 0.5, show.legend = FALSE) +
@@ -250,6 +286,13 @@ bnti_data_within_bac <- bnti_data_bacteria %>%
 stat_df <- bnti_data_within_bac %>% 
   wilcox_test(value~Habitat) %>% 
   adjust_pvalue(method = 'bonferroni') %>% 
+  add_significance() %>%
+  add_xy_position()
+
+
+stat_df_test <- bnti_data_within_bac %>% 
+  wilcox_test(value~Habitat) %>% 
+  adjust_pvalue(method = 'fdr') %>% 
   add_significance() %>%
   add_xy_position()
 
@@ -343,9 +386,9 @@ bnti_data_season$season  <- factor(bnti_data_season$season, levels = c("June", "
 ```{r}
 month_den <- bnti_data_season %>% 
   filter(Type == 'Microbiome' | Type == 'Bulk') %>%
-  mutate(Type = str_replace(Type, "Bulk", "Bulk metabolites")) %>% 
+  mutate(Type = str_replace(Type, "Bulk", "Metabolome")) %>% 
   mutate(season = factor(season, levels = c('Aug', 'July', 'June'))) %>% 
-  mutate(Type = factor(Type, levels = c("Microbiome", "Bulk metabolites"))) %>%
+  mutate(Type = factor(Type, levels = c("Microbiome", "Metabolome"))) %>%
   ggplot(aes(x = value, y = season, fill = Habitat))+
   geom_density_ridges(alpha = 0.5,
                       scale = .8) +
@@ -402,9 +445,9 @@ bnti_data_depth$depth  <- factor(bnti_data_depth$depth, levels = c("Surface", "M
 ```{r}
 depth_den <- bnti_data_depth %>% 
   filter(Type == 'Microbiome' | Type == 'Bulk') %>%
-  mutate(Type = str_replace(Type, "Bulk", "Bulk metabolites")) %>% 
+  mutate(Type = str_replace(Type, "Bulk", "Metabolome")) %>% 
   mutate(depth = factor(depth, levels = c("Deep", "Middle", "Surface"))) %>% 
-  mutate(Type = factor(Type, levels = c("Microbiome", "Bulk metabolites"))) %>% 
+  mutate(Type = factor(Type, levels = c("Microbiome", "Metabolome"))) %>% 
   ggplot(aes(x = value, y = depth, fill = Habitat, show_le))+
   geom_density_ridges(alpha = 0.5,
                       scale = .8) +
@@ -632,10 +675,16 @@ microbe_data <- rbind(eco.proc_palsa, eco.proc_2, eco.proc_fen) %>%
 ### Plotting
 
 ```{r}
+data_metabolites <- data_metabolites %>% 
+  mutate(Compound = str_replace_all(Compound, 'Bulk metabolites', 'Metabolome'))
+
 all_eco_process <- rbind(data_metabolites, microbe_data) %>% 
   mutate(Compound = factor(Compound, 
                            levels = rev(c('Microbiome',
-                                          'Bulk metabolites'))))
+                                          'Metabolome'))))
+
+color_strips <- strip_themed(background_x = elem_list_rect(fill = c("#703C1B", "#058000", "#0001FF")))
+
 
 eco_process_bar <- ggplot(all_eco_process) +
   geom_col(aes(x = value,
@@ -644,31 +693,16 @@ eco_process_bar <- ggplot(all_eco_process) +
            color = 'black') +
   scale_fill_manual(values = eco_process_colors) +
   theme_bw() +
-  facet_grid(cols = vars(Habitat)) +
-  guides(fill = guide_legend(nrow=2,byrow=TRUE)) +
+  facet_grid2(cols = vars(Habitat),
+              strip = color_strips) +
+  #guides(fill = guide_legend(nrow=2,byrow=TRUE)) +
   theme(strip.text.x = element_text(angle = 0, face = 'bold',
                                     color = 'white'),
-        legend.position = 'bottom',
         axis.title.y = element_blank())
 
 eco_process_bar
 
-fills <- list_colors[c('Palsa', 'Bog', 'Fen')]
 
-g <- ggplot_gtable(ggplot_build(eco_process_bar))
-stripr <- which(grepl('strip-t', g$layout$name))
-
-k <- 1
-for (i in stripr) {
-  j <- which(grepl('rect', g$grobs[[i]]$grobs[[1]]$childrenOrder))
-  g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill <- fills[k]
-  k <- k+1
-}
-
-dev.off()
-grid.draw(g)
-
-eco_proc_final <- g
 ```
 
 ## Mantel Heatmap
@@ -706,7 +740,7 @@ weig[upper.tri(weig)] = t(weig)[upper.tri(weig)]
 samples_names <- read_csv("../Assembly_feature_level_microbiome/input/metadata_matched_MAGs_data.csv"
 )
 
-bacteria_bnti <- read_csv("input/weighted_BNTI_bacteria.csv") %>% 
+bacteria_bnti <- read_csv("../Assembly_Microbiome/output/weighted_BNTI_bacteria.csv") %>% 
   column_to_rownames("...1")
 
 bacteria_bnti <- bacteria_bnti[colnames(bacteria_bnti),] %>% 
@@ -767,6 +801,7 @@ for(i in 1:length(matrix_list)){
 
 mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
 
+
 mantel_stats_bog_all <- mantel_stats %>% 
   mutate(Type = 'Bulk')
 
@@ -815,6 +850,7 @@ for(i in 1:length(matrix_list)){
 
 mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
 
+
 mantel_stats_fen_all <- mantel_stats %>% 
   mutate(Type = 'Bulk')
 
@@ -862,6 +898,7 @@ for(i in 1:length(matrix_list)){
 }
 
 mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
+
 
 mantel_stats_Palsa_all <- mantel_stats %>% 
   mutate(Type = 'Bulk')
@@ -912,6 +949,7 @@ for(i in 1:length(matrix_list)){
 
 mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
 
+
 data_plot_Palsa_bacteria <- mantel_stats %>% 
   mutate(Habitat = 'Palsa',
          Type = 'Microbial \u03B2NTI')
@@ -959,6 +997,7 @@ for(i in 1:length(matrix_list)){
 
 mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
 
+
 data_plot_Bog_bacteria <- mantel_stats %>% 
   mutate(Habitat = 'Bog',
          Type = 'Microbial \u03B2NTI')
@@ -1005,6 +1044,7 @@ for(i in 1:length(matrix_list)){
 }
 
 mantel_stats$pval.adj <- p.adjust(mantel_stats$p_value, method = 'bonferroni')
+
 
 data_plot_Fen_bacteria <- mantel_stats %>% 
   mutate(Habitat = 'Fen',
@@ -1065,28 +1105,9 @@ mantel_heatmap <- data_plot %>%
         strip.text = element_text(face = "bold", color = "white"),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title = element_blank()) +
-  facet_wrap(~Habitat)
+  facet_wrap2(~Habitat, strip = color_strips)
 
 mantel_heatmap
-
-# Changing facet strips colors
-
-fills <- list_colors[c('Palsa', 'Bog', 'Fen')]
-
-g <- ggplot_gtable(ggplot_build(mantel_heatmap))
-stripr <- which(grepl('strip-t', g$layout$name))
-
-k <- 1
-for (i in stripr) {
-  j <- which(grepl('rect', g$grobs[[i]]$grobs[[1]]$childrenOrder))
-  g$grobs[[i]]$grobs[[1]]$children[[j]]$gp$fill <- fills[k]
-  k <- k+1
-}
-
-dev.off()
-grid.draw(g)
-
-t2 <- as_ggplot(g)
 
 ```
 
@@ -1094,44 +1115,18 @@ t2 <- as_ggplot(g)
 
 ```{r}
 
-partial_1 <- ggarrange(bp_group_vio_bacteria, bp_group_vio_so,
-                       labels = "AUTO")
+final <- bp_group_vio_bacteria + bp_group_vio_so + depth_den + month_den + eco_process_bar + mantel_heatmap +
+  plot_layout(nrow = 3, guides = 'collect') +
+  plot_annotation(tag_levels = "A")&
+  theme(legend.text = element_text(size = 6),
+        axis.text = element_text(size = 6),
+        axis.title = element_text(size = 7),
+        strip.text = element_text(size = 7),
+        legend.title = element_text(size = 6))
 
-partial_1
+final
 
-partial_2 <- ggarrange(depth_den, month_den, common.legend = TRUE, legend = "bottom",
-                       labels = c("C", "D"))
-
-
-partial_2
-
-
-partial_3 <- ggarrange(partial_1, partial_2,
-                       ncol = 1)
-
-partial_3
-
-
-partial_4 <- ggarrange(eco_proc_final, t2,
-                       ncol = 1,
-                       labels = c("E", "F"))
-
-partial_4
-
-
-final_fig1 <- ggarrange(partial_3, partial_4)
-
-final_fig1
-
-
-ggsave('output/Figure_1_final.png', final_fig1, dpi = 300, height = 8, width = 15)
-
+ggsave('output/Figure_1_final.png', final, dpi = 300, height = 185, width = 200, units = "mm")
 
 ```
-
-
-
-
-
-
 

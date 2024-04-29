@@ -1,0 +1,184 @@
+---
+title: "Ordination"
+author: 'Viviana Freire'
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+# Code adapted from Danczak et al. 2020, https://github.com/danczakre/Meta-Metabolome_Ecology
+
+# 1. Load libraries
+
+```{r}
+require(vegan) # For broad ecology functions
+require(reshape2); require(ggplot2); require(ggthemes) # For prettier graphs
+require(picante); require(phytools); require(GUniFrac); require(pez) # Enables tree-based analyses
+library(ggsci)
+library(ggpubr)
+library(rstatix)
+library(ggrepel)
+library(grid)
+library(gridExtra)
+library(ggtext)
+library(phyloseq)
+library(tidyverse)
+```
+
+# Plots colors
+```{r}
+list_colors <- c('Palsa' = '#703C1B','Bog' = '#058000','Fen' = '#0001FF')
+```
+
+# Metabolome 
+
+```{r}
+data <- read.csv("../Assembly_Metabolome/output/Processed_Abisko_Data.csv", row.names = 1)
+mol <- read.csv("../Assembly_Metabolome/output/Processed_Abisko_Mol.csv", row.names = 1)
+
+tree <- read.tree("../Assembly_Metabolome/output/Abisko_Weighted_All-Trans_UPGMA.tre")
+# Rooting tree at midpoint (needed for UniFrac)
+tree = midpoint.root(tree) # Tested other root locations, output seems similar
+
+# Creating factors
+meta = read.csv("../Assembly_Metabolome/input/metadata_updated.csv")
+##Select metadata 
+sub_metadata <- meta %>% 
+  filter(Sampletype == 'solid')
+```
+
+### B.2 Checking for errors
+
+```{r}
+# Checking row names consistency between molecular info and data
+if(identical(x = row.names(data), y = row.names(mol)) == FALSE){
+  stop("Something is incorrect: the mol. info and peak counts don't match")
+}
+
+# Checking to ensure "FREDA_Processing.R" was run
+if(length(which(mol$C13 == 1)) > 0){
+  stop("Isotopic signatures weren't removed")
+}
+
+if(max(data) > 1){
+  print("Data is not presence/absence")
+  data[data > 1] = 1
+}
+```
+
+
+### Unifrac Plot
+
+```{r}
+
+phylo = match.phylo.data(tree, data) # Matching ICR dataset to the tree
+
+## Performing UniFrac analyses
+uni = GUniFrac(otu.tab = t(phylo$data), tree = phylo$phy) # Calculating the UniFrac distance
+
+uni = uni$unifracs[,,"d_UW"] # Only interested in the unweighted dataset
+
+uni.pcoa = ape::pcoa(uni) # Generating a principal coordinate analysis for the Uni distances
+uni.scores = as.data.frame(uni.pcoa$vectors) # Getting scores
+
+uni.scores <- uni.scores %>% 
+  rownames_to_column(var = "SampleID") %>% 
+  left_join(sub_metadata, by = "SampleID")
+
+uni.scores$Habitat <- factor(uni.scores$Habitat, levels = c("Palsa", "Bog", "Fen"))
+
+uni.scores$Month <- factor(uni.scores$Month, levels = c("June", "July", "August"))
+
+
+unifrac_bulk <- ggplot(data = uni.scores, aes(x = Axis.1, y = Axis.2))+
+    geom_point(aes(color = Habitat, shape = Month), size = 2.5)+
+    xlab(label = paste0("PCoA1 (", round((uni.pcoa$values$Relative_eig[1]*100), 2), "%)"))+
+    ylab(label = paste0("PCoA2 (", round((uni.pcoa$values$Relative_eig[2]*100), 2), "%)"))+
+    scale_color_manual(values = list_colors)+
+    ggtitle(paste0("Metabolome"))+
+  theme_bw()+
+  theme(plot.title = element_text(face="bold", hjust = 0.5),
+        axis.title = element_text(face="bold", hjust = 0.5))
+unifrac_bulk
+
+
+```
+
+
+
+# Microbiome
+
+```{r}
+
+tree <- read.tree("../Assembly_feature_level_microbiome/input/bac_arc_tree_comb.tree")
+
+meta <-  read_csv("../Assembly_feature_level_microbiome/input/metadata_matched_MAGs_data.csv") %>% 
+  select(c(SampleID, Month, Habitat, Core, Depth, Year, Sampletype, names_bnti)) %>% 
+  rename(SampleID_1 = names_bnti)
+
+data2 <- read_csv('../Assembly_feature_level_microbiome/input/otu_normalized.csv') %>% 
+  select(!GTDB_v2_r207) %>% 
+  rename(!!(set_names(meta$SampleID_1, meta$SampleID))) %>% 
+  column_to_rownames(var = 'genome')
+
+# Filtering 
+
+data2 <- data2[rowSums(data2) > 0,]
+
+# Rooting tree at midpoint (needed for UniFrac)
+tree = midpoint.root(tree) # Tested other root locations, output seems similar
+
+
+
+```
+
+
+### Unifrac Plot
+
+```{r}
+
+phylo2 = match.phylo.data(tree, data2) # Matching ICR dataset to the tree
+
+## Performing UniFrac analyses
+uni = GUniFrac(otu.tab = t(phylo2$data), tree = phylo2$phy) # Calculating the UniFrac distance
+
+uni = uni$unifracs[,,"d_1"] # Only interested in the unweighted dataset
+
+uni.pcoa = ape::pcoa(uni) # Generating a principal coordinate analysis for the Uni distances
+uni.scores = as.data.frame(uni.pcoa$vectors) # Getting scores
+
+uni.scores <- uni.scores %>% 
+  rownames_to_column(var = "SampleID") %>% 
+  left_join(meta, by = "SampleID")
+
+uni.scores$Habitat <- factor(uni.scores$Habitat, levels = c("Palsa", "Bog", "Fen"))
+
+uni.scores$Month <- factor(uni.scores$Month, levels = c("June", "July", "August"))
+
+
+unifrac_micro <- ggplot(data = uni.scores, aes(x = Axis.1, y = Axis.2))+
+    geom_point(aes(color = Habitat, shape = Month), size = 2.5)+
+    xlab(label = paste0("PCoA1 (", round((uni.pcoa$values$Relative_eig[1]*100), 2), "%)"))+
+    ylab(label = paste0("PCoA2 (", round((uni.pcoa$values$Relative_eig[2]*100), 2), "%)"))+
+    scale_color_manual(values = list_colors)+
+    ggtitle(paste0("Microbiome"))+
+  theme_bw()+
+  theme(plot.title = element_text(face="bold", hjust = 0.5),
+        axis.title = element_text(face="bold", hjust = 0.5))
+unifrac_micro
+
+
+```
+
+
+
+```{r}
+final <- ggarrange(unifrac_bulk, unifrac_micro, labels = "AUTO", 
+                   common.legend = TRUE,
+                   legend = "bottom")
+
+final
+
+
+ggsave("output/Supplementary_fig_7.png", dpi = 300, height = 5, width = 7)
+```
+

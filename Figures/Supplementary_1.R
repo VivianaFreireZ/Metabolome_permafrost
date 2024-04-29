@@ -190,6 +190,22 @@ el_plots <- imap(rep_df, function(x, y){
           plot.title = element_text(face = 'bold', hjust = 0.5))
 })
 
+# Ordination plots
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 final <- (bar_plot + box_plot) / (el_plots$Palsa + el_plots$Bog + el_plots$Fen + 
                                     plot_layout(guides = 'collect')) +
   

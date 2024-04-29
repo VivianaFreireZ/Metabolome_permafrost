@@ -14,6 +14,7 @@ library(tidyverse)
 library(readxl)
 library(patchwork)
 library(picante)
+library(ggpubr)
 library(treedataverse)
 library(ggalluvial)
 library(ggthemes)
@@ -64,7 +65,7 @@ tree <- read.tree('../Assembly_feature_level_microbiome/input/bac_arc_tree_comb.
 ## Bacteria in networks
 
 ```{r}
-network_otu <- read_csv('output/networked_bacteria.csv') %>% 
+network_otu <- read_csv('tables/networked_bacteria.csv') %>% 
   rename(old_ID = OTU) 
 
 ids <-  network_otu %>% 
@@ -75,32 +76,17 @@ ids <-  network_otu %>%
 ## CAZymes
 
 ```{r}
-metabolic_files <- list.files(path = '../input', pattern = 'METABOLIC_networked', 
-                              recursive = TRUE, full.names = TRUE)
-
-names(metabolic_files) <- c('Bog', 'Fen', 'Palsa')
-
-cazymes_df <- map(metabolic_files, function(metabolic){
-  cazy <- read_xlsx(metabolic, sheet = 'dbCAN2Hit') %>% 
-    select(-contains('Hits')) %>% 
-    pivot_longer(!CAZyme.ID, names_to = 'genome', values_to = 'num_hits') %>% 
-    mutate(genome = str_remove(genome, '^X'),
-           genome = str_remove(genome, '.Hit.numbers')) %>% 
-    filter(num_hits > 0) %>% 
-    pivot_wider(names_from = 'CAZyme.ID', values_from = 'num_hits', values_fill = 0) %>% 
-    left_join(network_otu, by = c('genome' = 'old_ID')) %>% 
-    select(-Habitat, - genome) %>% 
-    pivot_longer(!Name, names_to = 'CAZyme.ID', values_to = 'num_hits') %>% 
-    mutate(caz_class = case_when(str_detect(CAZyme.ID, 'GH') ~ 'Glycoside Hydrolase',
-                                 str_detect(CAZyme.ID, 'PL') ~ 'Polysaccharide Lyase')) %>% 
-    left_join(tax, by = 'Name') %>% 
-    mutate(Phylum = factor(Phylum, levels = phylum_list)) %>% 
-    arrange(Phylum) %>% 
-    mutate(order = n():1)
-  
-})
+from_dram <- read_tsv('../input/1864_97percentmags_annotations_combined.tsv') %>% 
+  filter(!is.na(cazy_id))
 ```
 
+## metaT
+
+```{r}
+metaT_all <- read_tsv('../input/Emerge_metaTs_processed_v7/metaT_pathways.tsv') %>% 
+  filter(pathway == 'CAZy',
+         str_detect(SampleID__, 'MainAutochamber.2012'))
+```
 
 # Plot colors 
 
@@ -119,6 +105,23 @@ hab_colors <- c('Bog' = '#058000','Fen' = '#0001FF', 'Palsa' = '#703C1B')
 df_sankey_f <- do.call(rbind, sankey_df) %>% 
   mutate(Taxa = fct_lump_n(Taxa, 10, w = Freq))
 
+legend_p <- data.frame(Taxa = c(names(phylum_colors), 'Other')) %>% 
+  mutate(Taxa = fct_other(Taxa, keep = levels(df_sankey_f$Taxa))) %>% 
+  ggplot() +
+  geom_col(aes(x = Taxa,
+               y = 1,
+               fill = Taxa),
+           alpha = 0.75) +
+  scale_fill_manual(values = c(phylum_colors, "Other" = 'gray30')) +
+  guides(fill = guide_legend(ncol = 6)) +
+  theme_bw() +
+  theme(legend.position = 'bottom',
+        legend.text = element_text(size = 5),
+        legend.title = element_text(size = 7),
+        legend.key.size = unit(.75, 'line'))
+
+legend <- get_legend(legend_p)
+
 sankey_plots <- imap(sankey_df, function(df, y){
   plot <- df %>%
     mutate(Taxa = fct_other(Taxa, keep = levels(df_sankey_f$Taxa))) %>% 
@@ -129,17 +132,21 @@ sankey_plots <- imap(sankey_df, function(df, y){
     geom_alluvium(aes(fill = Taxa),
                   width = 1/12) +
     geom_stratum(width = 1/12, fill = "white", color = "black") +
-    ggrepel::geom_label_repel(stat = "stratum", aes(label = after_stat(stratum)),
-               size = 2.5, show.legend = FALSE) +
+    ggrepel::geom_label_repel(stat = "stratum", 
+                              aes(label = after_stat(stratum)),
+                              size = 1.35,
+                              label.padding = 0.1,
+                              show.legend = FALSE) +
     labs(title = y) +
     scale_x_discrete(limits = c("Phylum", "Reaction","Category"), expand = c(.08, .05)) +
     scale_fill_manual(values = c(phylum_colors, 'Other' = 'gray30'), 
                       na.value = 'white', drop = FALSE) +
     theme_bw() +
-    theme(plot.title = element_text(face = 'bold', hjust = 0.5),
-          legend.position = "bottom",
-          legend.text = element_text(size = 15))
-
+    theme(plot.title = element_text(face = 'bold', hjust = 0.5, size = 7),
+          legend.position = "none",
+          axis.text = element_text(size = 6),
+          axis.title = element_text(size = 7))
+  
   return(plot)
 })
 ```
@@ -147,12 +154,13 @@ sankey_plots <- imap(sankey_df, function(df, y){
 ## Saving plot
 
 ```{r}
-alluvial <- (sankey_plots$Palsa | sankey_plots$Bog | sankey_plots$Fen) +
-  plot_layout(guides = 'collect', ) &
-  theme(plot.tag = element_text(size = 25),
-        legend.position = 'bottom')
+alluvial <- ((ggplot() + theme_void() | ggplot() + theme_void() | ggplot() + theme_void()) /
+  (sankey_plots$Palsa | sankey_plots$Bog | sankey_plots$Fen) / legend) +
+  plot_layout(heights = c(6, 5, 1)) +
+  plot_annotation(tag_levels = list(c('A', 'B', 'C', 'D', 'E', 'F'))) &
+  theme(plot.tag = element_text(size = 7))
 
-ggsave('output/Figure_4_sankey.png', alluvial, dpi = 300, width = 16, height = 7.5)
+ggsave('output/Figure_4D-F_sankey.png', alluvial, dpi = 300, width = 210, height = 180, units = 'mm')
 
 ```
 
@@ -162,13 +170,13 @@ ggsave('output/Figure_4_sankey.png', alluvial, dpi = 300, width = 16, height = 7
 
 ```{r message=FALSE, warning=FALSE, error=FALSE}
 # Filtering
-bac_list_hab <- do.call(rbind, cazymes_df) %>% 
-  select(Name) %>% 
+bac_list_hab <- from_dram %>% 
+  select(fasta) %>% 
   distinct() %>% 
-  left_join(network_otu, by = 'Name')
+  inner_join(network_otu, by = c('fasta' = 'old_ID'))
 
-tips <- setNames(bac_list_hab$old_ID,
-                 nm = bac_list_hab$old_ID)
+tips <- setNames(bac_list_hab$fasta,
+                 nm = bac_list_hab$fasta)
 
 matched_phylo <- match.phylo.data(tree, tips)
 
@@ -182,18 +190,34 @@ temp_annot <- as_tibble(matched_phylo$phy) %>%
 ## Preparing CAZyme data
 
 ```{r}
-cazymes_hits <- imap(cazymes_df, function(df, y){
-  hits <- df %>% 
-    filter(num_hits > 0) %>% 
-    group_by(Name) %>% 
-    summarise(num_families = n(),
-              num_cazy = sum(num_hits)) %>% 
-    left_join(ids, by = 'Name') 
-  
-})
+cazymes_hits <- from_dram %>% 
+  select(fasta, cazy_id) %>%
+  separate_rows(cazy_id, sep = '; ') %>% 
+  filter(fasta %in% network_otu$old_ID) %>%
+  mutate(family = str_remove(cazy_id, '_.*'),
+         sub_family = str_extract(cazy_id, '(?<=_).*')) %>% 
+  group_by(fasta) %>%
+  mutate(num_cazy = n()) %>% 
+  distinct() %>% 
+  group_by(fasta, num_cazy) %>% 
+  summarise(num_family = n()) %>% 
+  left_join(ids, by = c('fasta' = 'old_ID')) 
 
-caz_fruit <- do.call(rbind, cazymes_hits)
 ```
+
+```{r}
+expressed_cazy <- metaT_all %>% 
+  select(genome, SampleID__, cazy_id) %>% 
+  separate_rows(cazy_id, sep = '; ') %>% 
+  distinct() %>% 
+  mutate(Habitat = case_when(str_detect(SampleID__, '_S_') ~ 'Bog',
+                             str_detect(SampleID__, '_E_') ~ 'Fen',
+                             TRUE ~ 'Palsa')) %>% 
+  inner_join(network_otu, by = c('genome' = 'old_ID', 'Habitat')) %>% 
+  group_by(genome, Habitat) %>% 
+  count()
+```
+
 
 ## Plotting tree
 
@@ -203,9 +227,10 @@ annot_tree <- as.treedata(temp_annot)
 plot_tree <- ggtree(annot_tree, layout = 'fan', open.angle = 25) +
   geom_tippoint(aes(color = Phylum)) +
   scale_color_manual(values = phylum_colors) +
+  guides(color = guide_legend(ncol = 3)) +
   geom_fruit(data = bac_list_hab,
              geom = geom_tile,
-             mapping = aes(y = old_ID,
+             mapping = aes(y = fasta,
                            x = Habitat,
                            fill = Habitat),
              color = 'white',
@@ -213,10 +238,10 @@ plot_tree <- ggtree(annot_tree, layout = 'fan', open.angle = 25) +
              pwidth = 0.2) +
   scale_fill_manual(values = hab_colors) +
   ggnewscale::new_scale_fill() +
-  geom_fruit(data = caz_fruit,
+  geom_fruit(data = cazymes_hits,
              geom = geom_col,
-             mapping = aes(y = old_ID,
-                           x = num_families,
+             mapping = aes(y = fasta,
+                           x = num_family,
                            fill = num_cazy),
              color = 'black',
              offset = 0.1,
@@ -227,10 +252,28 @@ plot_tree <- ggtree(annot_tree, layout = 'fan', open.angle = 25) +
                                 hjust = -1),
              grid.params = list()) +
   scale_fill_distiller('Number of CAZymes', 
-                       palette = 'YlOrRd', direction = 1, na.value = 'white')
+                       palette = 'YlOrRd', direction = 1, na.value = 'white') +
+  ggnewscale::new_scale_fill() +
+  geom_fruit(data = expressed_cazy,
+             geom = geom_col,
+             mapping = aes(y = genome,
+                           x = n,
+                           fill = n),
+             color = 'black',
+             offset = 0.1,
+             pwidth = 0.2,
+             axis.params = list(axis = 'x',
+                                text.size = 2,
+                                text.angle = 270,
+                                hjust = -1),
+             grid.params = list()) +
+  scale_fill_distiller('Number of expressed CAZymes', 
+                       palette = 'Purples', direction = 1, na.value = 'white') +
+  theme(legend.text = element_text(size = 10))
+
 plot_tree
 
-ggsave('output/Supplementary_fig_5.png', plot_tree, dpi = 300, height = 8, width = 8)
+ggsave('output/Supplementary_fig_5.png', plot_tree, dpi = 300, height = 8, width = 12)
 ```
 
 
