@@ -2,7 +2,7 @@
 
 This is a repository containing the code for replicating the analysis and the figures for the paper: 
 
-**Microbial-Metabolite Dynamics Illuminate Permafrost Ecosystem Complexity at the Feature Scale**
+**Microbial-Metabolite Dynamics Illuminate Permafrost Ecosystem Complexity at the Feature Scale.**
 
 ## Assembly Microbiome
 
