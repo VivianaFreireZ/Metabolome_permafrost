@@ -83,7 +83,7 @@ from_dram <- read_tsv('../input/1864_97percentmags_annotations_combined.tsv') %>
 ## metaT
 
 ```{r}
-metaT_all <- read_tsv('../input/Emerge_metaTs_processed_v7/metaT_pathways.tsv') %>% 
+metaT_all <- read_csv('../input/Emerge_metaTs_processed_v7/metaT_pathway_filter_2012.csv') %>% 
   filter(pathway == 'CAZy',
          str_detect(SampleID__, 'MainAutochamber.2012'))
 ```
@@ -192,15 +192,10 @@ temp_annot <- as_tibble(matched_phylo$phy) %>%
 ```{r}
 cazymes_hits <- from_dram %>% 
   select(fasta, cazy_id) %>%
-  separate_rows(cazy_id, sep = '; ') %>% 
-  filter(fasta %in% network_otu$old_ID) %>%
-  mutate(family = str_remove(cazy_id, '_.*'),
-         sub_family = str_extract(cazy_id, '(?<=_).*')) %>% 
-  group_by(fasta) %>%
-  mutate(num_cazy = n()) %>% 
-  distinct() %>% 
-  group_by(fasta, num_cazy) %>% 
-  summarise(num_family = n()) %>% 
+  filter(fasta %in% network_otu$old_ID,
+         !is.na(cazy_id)) %>%
+  group_by(fasta) %>% 
+  summarise(num_cazy = n()) %>% 
   left_join(ids, by = c('fasta' = 'old_ID')) 
 
 ```
@@ -208,7 +203,6 @@ cazymes_hits <- from_dram %>%
 ```{r}
 expressed_cazy <- metaT_all %>% 
   select(genome, SampleID__, cazy_id) %>% 
-  separate_rows(cazy_id, sep = '; ') %>% 
   distinct() %>% 
   mutate(Habitat = case_when(str_detect(SampleID__, '_S_') ~ 'Bog',
                              str_detect(SampleID__, '_E_') ~ 'Fen',
@@ -241,7 +235,7 @@ plot_tree <- ggtree(annot_tree, layout = 'fan', open.angle = 25) +
   geom_fruit(data = cazymes_hits,
              geom = geom_col,
              mapping = aes(y = fasta,
-                           x = num_family,
+                           x = num_cazy,
                            fill = num_cazy),
              color = 'black',
              offset = 0.1,

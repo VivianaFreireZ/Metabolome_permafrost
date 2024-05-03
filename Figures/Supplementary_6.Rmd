@@ -22,15 +22,17 @@ library(tidyverse)
 ## Load metatranscriptomics data
 
 ```{r}
-## Loading metaT processed tables
-
-metaT_genomes <- read_tsv("../input/Emerge_metaTs_processed_v7/metaT_genomes.tsv")
-
-metaT_path <- read_tsv("../input/Emerge_metaTs_processed_v7/metaT_pathways.tsv")
 
 ## Loading expression 
 
-metaT_path_ex <- read_csv("../input/Emerge_metaTs_processed_v7/metaT_pathway_exp.csv")
+metaT_path_ex <- read_csv("../input/Emerge_metaTs_processed_v7/metaT_pathway_exp_filter_2012.csv")
+
+metaT_path_ex <- metaT_path_ex %>% 
+  mutate(subpathway = str_remove_all(subpathway, '-all'),
+         subpathway = str_replace_all(subpathway, '_', ' '),
+         pathway = str_replace_all(pathway, '_', ' '))
+
+
 ```
 
 ## Load data from previous analysis
@@ -167,10 +169,10 @@ all_plot <- pathway_all %>%
                                     by_layer_x = TRUE)) +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_discrete(expand = c(0, 0)) +
-  scale_fill_distiller(palette = 'YlOrRd', direction = 1,
-                       trans = scales::log10_trans(),
+  scale_fill_viridis_c(option = 'A', direction = -1,
+                      trans = scales::log10_trans(),
                        labels = scales::label_number(),
-                       breaks = c(c(0.1, 1, 10, 100, 1000, 10000))) +
+                       breaks = c(c(0.1, 1, 10, 100, 500)))+
   labs(fill = 'TPM') +
   theme_bw() +
   theme(axis.text.x = element_blank(),
@@ -183,7 +185,7 @@ all_plot <- pathway_all %>%
 
 all_plot
 
-ggsave('output/Supplementary_fig_6.png', all_plot, dpi = 300, height = 10, width = 15)
+ggsave('output/Supplementary_fig_6_filtered.png', all_plot, dpi = 300, height = 10, width = 15)
 ```
 
 

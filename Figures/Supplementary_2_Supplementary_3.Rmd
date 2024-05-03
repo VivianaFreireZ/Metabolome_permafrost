@@ -12,7 +12,9 @@ editor_options:
 ```{r message=FALSE, warning=FALSE}
 library(readxl)
 library(ggtext)
+library(ggpubr)
 library(tidyverse)
+
 ```
 
 # Loading data
@@ -52,12 +54,40 @@ genome_belong <- micro_data_df %>%
   mutate(Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen')))
 ```
 
-## MetaT annotation
+## MetaT annotation - Expression at pathway level
 
 ```{r}
-metaT_exp <- read_csv('../input/Emerge_metaTs_processed_v7/metaT_pathway_exp.csv') %>% 
+metaT_exp <- read_csv('../input/Emerge_metaTs_processed_v7/metaT_pathway_exp_filter_2012.csv') %>% 
   filter(str_detect(SampleID__, '2012[0-9]+_S_'))
+
 ```
+
+# Changing pathway name format
+```{r}
+metaT_exp2 <- metaT_exp %>% 
+  mutate(subpathway = str_remove_all(subpathway, '-all'),
+         subpathway = str_replace_all(subpathway, '_', ' '),
+         pathway = str_replace_all(pathway, '_', ' '))
+
+```
+
+
+## MetaT annotation - per gene
+
+```{r}
+meta_path <- read_csv('../input/Emerge_metaTs_processed_v7/metaT_pathway_filter_2012.csv') %>% 
+  filter(str_detect(SampleID__, '2012[0-9]+_S_')) %>% 
+  select(!c(contig, start, end, strand, length, gene, product, temporal_sample_id))
+
+# Cazy
+
+metaT_path_cazy <- meta_path %>% 
+  filter(pathway == "CAZy")
+
+
+```
+
+
 
 ## OTU table
 
@@ -86,13 +116,17 @@ otu_table <- read_csv("../Assembly_feature_level_microbiome/input/otu_normalized
 
 # Supplementary figure 2
 
+## Pathway expression version ##
+
 Expression of genomes that correlated with cluster 1 of the bog
 
 ```{r}
-metaT_annot_ready <- metaT_exp %>% 
+
+metaT_annot_ready <- metaT_exp2 %>% 
   filter(genome %in% genome_belong$var) %>% 
   inner_join(genome_belong, by = c('genome' = 'var')) %>% 
   inner_join(otu_table, by = c('genome', 'Habitat'))
+
 
 supp2 <- metaT_annot_ready %>% 
   group_by(SampleID__, pathway, subpathway, Phylum) %>% 
@@ -110,10 +144,12 @@ supp2 <- metaT_annot_ready %>%
              space = 'free') +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_discrete(expand = c(0, 0)) +
-  scale_fill_distiller(palette = 'YlOrRd', direction = 1) +
+  #scale_fill_distiller(palette = 'YlOrRd', direction = 1) +
+  scale_fill_viridis_c(option = 'A', direction = -1)+
   theme(axis.title = element_blank(),
         axis.text.x = element_blank(),
         # axis.ticks.x = element_blank(),
+        #axis.text.y = element_blank(),
         strip.text.y = element_text(angle = 0),
         strip.text.x = element_text(angle = 90),
         panel.grid.major = element_blank(),
@@ -121,8 +157,9 @@ supp2 <- metaT_annot_ready %>%
 
 supp2
 
-ggsave('output/Supplementary_fig_2.png', supp2, dpi = 300, height = 8, width = 12)
+ggsave('output/Supplementary_fig_2_filtered.png', supp2, dpi = 300, height = 6, width = 10)
 ```
+
 
 # Supplementary figure 3
 
@@ -133,7 +170,7 @@ selected_genomes <- c('20120700_S1D_25', '20110800_S2M_3',
                       '20120800_E1D_14', '20140700_E14_11',
                       '20120600_S1S_4')
 
-metaT_filtered <- metaT_exp %>% 
+metaT_filtered <- metaT_exp2 %>% 
   filter(genome %in% selected_genomes)
 
 label_names <- set_names(c('Acidobacteriota<br>*Holophaga*<br>(20120700_S1D_25)',
@@ -151,23 +188,86 @@ supp3 <- metaT_filtered %>%
                 fill = tpm),
             color = 'white') +
   theme_bw() +
-  facet_grid(rows = vars(pathway),
+  facet_grid(
              cols = vars(genome),
              scales = 'free',
              space = 'free',
              labeller = labeller(genome = label_names)) +
+  labs(fill = "TPM")+
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_discrete(expand = c(0, 0)) +
-  scale_fill_distiller(palette = 'YlOrRd', direction = 1) +
+  scale_fill_viridis_c(option = 'A', direction = -1)+
   theme(axis.title = element_blank(),
-        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
         strip.text.y = element_text(angle = 0),
         strip.text.x = element_markdown(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())  
+        panel.grid.minor = element_blank(),
+        legend.position = "bottom")  
 
 supp3
 
-ggsave('output/Supplementary_fig_3.png', supp3, dpi = 300, height = 8, width = 12)
 ```
+
+## CAZY
+```{r}
+
+metaT_annot_cazy <- metaT_path_cazy %>% 
+  filter(genome %in% selected_genomes) %>% 
+  drop_na(cazy_id) %>% 
+  mutate(cazy_fam = case_when(
+    str_detect(cazy_id, 'GH') ~ 'Glycoside\nHydrolases',
+    str_detect(cazy_id, 'GT') ~ 'Glycosyl\nTransferases',
+    str_detect(cazy_id, 'PL') ~ 'Polysaccharide\nLyases',
+    str_detect(cazy_id, 'CE') ~ 'Carbohydrate\nEsterases',
+    str_detect(cazy_id, 'AA') ~ 'Auxiliary\nActivities',
+    str_detect(cazy_id, 'CBM') ~ 'Carbohydrate\nBinding Module'))
+
+supp3.1 <- metaT_annot_cazy %>% 
+  group_by(SampleID__, pathway, label_id, genome, cazy_fam) %>% 
+  summarise(tpm = sum(tpm)) %>% 
+  ggplot() +
+  geom_tile(aes(x = SampleID__,
+                y = label_id,
+                fill = tpm),
+            color = 'white') +
+  theme_bw() +
+  facet_grid(rows = vars(cazy_fam),
+             cols = vars(genome),
+             scales = 'free',
+             space = 'free',
+             labeller = labeller(genome = label_names)) +
+   labs(fill = "TPM")+
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_fill_viridis_c(option = 'A', direction = -1)+
+  theme(axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        strip.text.y = element_text(angle = 0),
+        strip.text.x = element_markdown(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "bottom") 
+
+supp3.1
+
+## Joining figures
+
+
+final <- ggarrange(supp3, supp3.1, labels = 'AUTO')
+
+
+final
+
+ggsave('output/Supplementary_fig_3_filtered.png', final, dpi = 300, height = 14, width = 20)
+
+```
+
+
+
+
+
+
+
+
 
