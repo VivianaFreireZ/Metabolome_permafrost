@@ -200,7 +200,8 @@ stat_df <- bnti_data_within %>%
   wilcox_test(value~Habitat) %>% 
   adjust_pvalue(method = 'bonferroni') %>% 
   add_significance() %>%
-  add_xy_position()
+  add_xy_position() %>% 
+  mutate(p.adj = paste0("P = ", p.adj))
 
 #Violin plot
 
@@ -213,21 +214,24 @@ bp_group_vio_so <- bnti_data_within %>%
   labs(#title = expression(bold(paste(beta, "NTI ", metabolites))),
        y = expression(bold(paste(beta, 'NTI'))),
        fill = 'Habitat')+
+  scale_y_continuous(limits = c(-3.5, 70)) +
   scale_fill_manual(values = list_colors)+
   stat_pvalue_manual(stat_df,
-                     label = 'p.adj.signif', inherit.aes = FALSE, hide.ns = TRUE)+
+                     label = 'p.adj', inherit.aes = FALSE, hide.ns = TRUE,
+                     size = 2)+
   facet_wrap(~Type)+
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5),
-        #axis.title.y = element_text(hjust = 0.5),
+        axis.title.y = element_text(size = 6),
         axis.text.x = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         strip.background = element_rect(fill = 'black'),
-        strip.text = element_text(color = 'white', face = 'bold'))
+        strip.text = element_text(color = 'white', face = 'bold', size = 6))
 
 
 bp_group_vio_so
+
 ```
 
 ## Violing microbes
@@ -283,18 +287,20 @@ bnti_data_within_bac <- bnti_data_bacteria %>%
       (str_detect(Var1, '[a-z]_S_') & str_detect(Var2, '[a-z]_S_'))
   )
 
+
 stat_df <- bnti_data_within_bac %>% 
   wilcox_test(value~Habitat) %>% 
   adjust_pvalue(method = 'bonferroni') %>% 
   add_significance() %>%
-  add_xy_position()
+  add_xy_position() %>% 
+  mutate(p.adj = paste0("P = ", p.adj))
 
 
-stat_df_test <- bnti_data_within_bac %>% 
-  wilcox_test(value~Habitat) %>% 
-  adjust_pvalue(method = 'fdr') %>% 
-  add_significance() %>%
-  add_xy_position()
+# stat_df_test <- bnti_data_within_bac %>% 
+#   wilcox_test(value~Habitat) %>% 
+#   adjust_pvalue(method = 'fdr') %>% 
+#   add_significance() %>%
+#   add_xy_position()
 
 # Boxplots by group
 # Violin plot
@@ -309,17 +315,21 @@ bp_group_vio_bacteria <- bnti_data_within_bac %>%
        fill = 'Habitat')+
   scale_fill_manual(values = list_colors)+
   stat_pvalue_manual(stat_df,
-                     label = 'p.adj.signif', inherit.aes = FALSE, hide.ns = TRUE)+
+                     label = 'p.adj', inherit.aes = FALSE, hide.ns = TRUE,
+                     size = 2)+
+  scale_y_continuous(limits = c(-6, 12.1)) +
   facet_wrap(~type) +
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5),
         axis.title.y = element_text(hjust = 0.5),
-        # axis.text.y = element_text(size = 15),
+        axis.text.y = element_text(size = 6),
         axis.text.x = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         strip.background = element_rect(fill = 'black'),
-        strip.text = element_text(color = 'white', face = 'bold'))
+        strip.text = element_text(color = 'white', face = 'bold', size = 6))
+
+
 bp_group_vio_bacteria
 
 
@@ -400,10 +410,10 @@ month_den <- bnti_data_season %>%
   scale_fill_manual(values = list_colors)+
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5, size = 15),
-        axis.title.y = element_text(hjust = 0.5)) + 
+        axis.title.y = element_text(hjust = 0.5, size = 6)) + 
   facet_grid(cols = vars(Type), scales = 'free') +
   theme(strip.background = element_rect(fill = 'black'),
-        strip.text = element_text(color = 'white', face = 'bold'))
+        strip.text = element_text(color = 'white', face = 'bold', size = 6))
 
 month_den
 
@@ -459,10 +469,10 @@ depth_den <- bnti_data_depth %>%
   scale_fill_manual(values = list_colors)+
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5, size = 15),
-        axis.title.y = element_text(hjust = 0.5)) + 
+        axis.title.y = element_text(hjust = 0.5, size = 6)) + 
   facet_grid(cols = vars(Type), scales = 'free') +
   theme(strip.background = element_rect(fill = 'black'),
-        strip.text = element_text(color = 'white', face = 'bold'))
+        strip.text = element_text(color = 'white', face = 'bold', size = 6))
 
 depth_den
 
@@ -697,8 +707,10 @@ eco_process_bar <- ggplot(all_eco_process) +
               strip = color_strips) +
   #guides(fill = guide_legend(nrow=2,byrow=TRUE)) +
   theme(strip.text.x = element_text(angle = 0, face = 'bold',
-                                    color = 'white'),
-        axis.title.y = element_blank())
+                                    color = 'white',
+                                    size = 6),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 6))
 
 eco_process_bar
 
@@ -1092,7 +1104,8 @@ mantel_heatmap <- data_plot %>%
                                                         'Soil temperature',
                                                         'C:N ratio',
                                                         'Precipitation',
-                                                        'Microbial \u03B2NTI'))) %>%  
+                                                        'Microbial \u03B2NTI')),
+         Type = str_replace(Type, " ", "\n")) %>%  
   ggplot(aes(x = Type, y = Geochemistry, fill = Mantel_stat))+
   geom_tile(color = "white")+
   scale_fill_distiller(palette = 'RdBu', 
@@ -1102,8 +1115,9 @@ mantel_heatmap <- data_plot %>%
   geom_text(aes(label = Signif))+
   labs(fill = 'Mantel \nStatistic')+
   theme(plot.title = element_text(face="bold", hjust = 0.5),
-        strip.text = element_text(face = "bold", color = "white"),
-        axis.text.x = element_text(angle = 45, hjust = 1),
+        strip.text.x = element_text(face = "bold", color = "white", size = 6),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+        axis.text.y = element_text(size = 6),
         axis.title = element_blank()) +
   facet_wrap2(~Habitat, strip = color_strips)
 
@@ -1120,13 +1134,17 @@ final <- bp_group_vio_bacteria + bp_group_vio_so + depth_den + month_den + eco_p
   plot_annotation(tag_levels = "A")&
   theme(legend.text = element_text(size = 6),
         axis.text = element_text(size = 6),
-        axis.title = element_text(size = 7),
-        strip.text = element_text(size = 7),
+        axis.title = element_text(size = 6),
+        strip.text = element_text(size = 6),
         legend.title = element_text(size = 6))
 
 final
 
-ggsave('output/Figure_1_final.png', final, dpi = 300, height = 185, width = 200, units = "mm")
+ggsave('output_updated/Figure_1_final.png', final, dpi = 300, height = 185, width = 180, units = "mm")
+
+ggsave('output_updated/Figure_1_final.eps', final, 
+       device = cairo_ps, fallback_resolution = 300,
+       height = 185, width = 180, units = "mm")
 
 ```
 

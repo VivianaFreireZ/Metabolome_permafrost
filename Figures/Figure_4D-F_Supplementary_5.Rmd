@@ -245,7 +245,7 @@ plot_tree <- ggtree(annot_tree, layout = 'fan', open.angle = 25) +
                                 text.angle = 270,
                                 hjust = -1),
              grid.params = list()) +
-  scale_fill_distiller('Number of CAZymes', 
+  scale_fill_distiller('Number of\nCAZymes', 
                        palette = 'YlOrRd', direction = 1, na.value = 'white') +
   ggnewscale::new_scale_fill() +
   geom_fruit(data = expressed_cazy,
@@ -261,13 +261,28 @@ plot_tree <- ggtree(annot_tree, layout = 'fan', open.angle = 25) +
                                 text.angle = 270,
                                 hjust = -1),
              grid.params = list()) +
-  scale_fill_distiller('Number of expressed CAZymes', 
+  scale_fill_distiller('Number of\nexpressed\nCAZymes', 
                        palette = 'Purples', direction = 1, na.value = 'white') +
-  theme(legend.text = element_text(size = 10))
+  # guides(fill = guide_colorbar(direction = 'vertical')) +
+  theme(legend.text = element_text(size = 6),
+        legend.position = "bottom",
+        legend.title.position = "top",
+        legend.title = element_text(size = 7),
+        legend.key.size = unit(.5, 'lines'),
+        legend.direction = 'vertical')
 
 plot_tree
 
-ggsave('output/Supplementary_fig_5.png', plot_tree, dpi = 300, height = 8, width = 12)
+
+
+ggsave('output_updated/Supplementary_fig_5.png', plot_tree, dpi = 300, 
+       width = 180, height = 210, units = "mm")
+
+
+ggsave('output_updated/Supplementary_fig_5.eps', plot_tree, 
+       device = cairo_ps, fallback_resolution = 300,
+       width = 180, height = 210, units = 'mm')
+
 ```
 
 

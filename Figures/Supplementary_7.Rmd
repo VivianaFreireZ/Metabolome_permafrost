@@ -179,6 +179,13 @@ final <- ggarrange(unifrac_bulk, unifrac_micro, labels = "AUTO",
 final
 
 
-ggsave("output/Supplementary_fig_7.png", dpi = 300, height = 5, width = 7)
+ggsave('output_updated/Supplementary_fig_7.png', final, dpi = 300, 
+       width = 180, units = "mm")
+
+
+ggsave('output_updated/Supplementary_fig_7.eps', final, 
+       device = cairo_ps, fallback_resolution = 300,
+       width = 180, height = 110, units = 'mm')
+
 ```
 

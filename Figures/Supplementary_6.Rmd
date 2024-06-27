@@ -148,6 +148,7 @@ pathway_all <- rbind(palsa_relative, bog_relative, fen_relative)
 
 all_plot <- pathway_all %>% 
   mutate(Phylum = str_remove(Phylum, 'p__'),
+         pathway = str_replace(pathway," ", "\n"), 
          habitat = factor(habitat, levels = c('Palsa', 'Bog', 'Fen'))) %>% 
   ggplot() +
   geom_tile(aes(x = SampleID__,
@@ -177,15 +178,26 @@ all_plot <- pathway_all %>%
   theme_bw() +
   theme(axis.text.x = element_blank(),
         axis.title = element_blank(),
-        strip.text.y = element_text(angle = 0),
-        strip.text.x = element_text(angle = 90),
+        strip.text.y = element_text(angle = 0, size = 6),
+        strip.text.x = element_text(angle = 90, size = 6),
+        axis.text.y = element_text(size = 6),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        panel.spacing = unit(.1, 'lines'))
+        panel.spacing = unit(.1, 'lines'),
+        legend.position = "bottom")
 
 all_plot
 
-ggsave('output/Supplementary_fig_6_filtered.png', all_plot, dpi = 300, height = 10, width = 15)
+
+
+ggsave('output_updated/Supplementary_fig_6.png', all_plot, dpi = 300, 
+       width = 180, height = 210, units = "mm")
+
+
+ggsave('output_updated/Supplementary_fig_6.eps', all_plot, 
+       device = cairo_ps, fallback_resolution = 300,
+       width = 180, height = 210, units = 'mm')
+
 ```
 
 

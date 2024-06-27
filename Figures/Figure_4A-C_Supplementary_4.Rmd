@@ -73,7 +73,7 @@ elcomps <- map(node_files, function(x){
   unique()
 
 elcomp_colors <- set_names(ggpubr::get_palette('Paired', length(elcomps)),
-                          nm = elcomps)
+                           nm = elcomps)
 
 elcomp_colors['CHO'] <- '#A6CEE3'
 elcomp_colors['CHNO'] <- '#FB9A99'
@@ -207,7 +207,10 @@ num_nodes_plot <- num_nodes_df %>%
        fill = 'Type of node') +
   scale_fill_manual(values = get_palette('d3', 2)) +
   theme_bw() +
-  theme(axis.title.x = element_blank()) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 6),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom") +
   facet_wrap(~Node_type, scales = 'free_y')
 
 num_nodes_plot
@@ -246,7 +249,9 @@ num_edges_plot <- num_edges_df %>%
        fill = 'Type of interaction') +
   facet_wrap(~direction) +
   theme_bw() +
-  theme(axis.title.x = element_blank())
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 6),
+        legend.position = "bottom")
 
 num_edges_plot
 ```
@@ -279,7 +284,9 @@ num_modules_plot <- num_modules_df %>%
   labs(y = 'Number of modules',
        fill = 'Type of module') +
   theme_bw() +
-  theme(axis.title.x = element_blank())
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 6),
+        legend.position = "bottom")
 
 num_modules_plot
 ```
@@ -312,21 +319,25 @@ phylum_vs_metabolites_df <- do.call(rbind, phylum_vs_metabolites)
 phylum_vs_metabolites_plot <- phylum_vs_metabolites_df %>% 
   mutate(Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen')),
          n = ifelse(direction == 'np', -n, n),
-         direction = ifelse(direction == 'np', 'Negative', 'Positive')) %>% 
+         direction = ifelse(direction == 'np', 'Negative', 'Positive'),
+         Phylum_Elcomposition = str_remove(Phylum_Elcomposition, "p__")) %>% 
   ggplot() +
   geom_col(aes(y = Phylum_Elcomposition,
                x = n,
                fill = direction),
            color = 'black') +
   labs(x = 'Number of negative (<-) or positive (->) correlations',
-       fill = 'Correlation') +
+       fill = 'Correlation',
+       y = "Phylum") +
   theme_bw() +
   scale_x_continuous(labels = abs) +
   scale_fill_manual(values = c('Positive' = 'indianred2', 'Negative' = 'steelblue')) +
   facet_grid(cols = vars(Habitat), scales = 'free_y', space = 'free') +
-  theme(axis.title.y = element_blank())
+  theme(axis.title.x = element_text(size = 7), 
+        legend.position = 'bottom')
 
 phylum_vs_metabolites_plot
+
 ```
 
 ## Heatmap of interactions by metabolite class
@@ -365,7 +376,8 @@ hmp_class_q <- phylum_vs_metabolites_hmp_df %>%
   group_by(Habitat, Phylum, Molclass) %>% 
   count() %>% 
   pivot_wider(names_from = Molclass, values_from = n, values_fill = NA) %>% 
-  pivot_longer(!c(Phylum, Habitat), names_to = 'MolClass', values_to = 'n') %>% 
+  pivot_longer(!c(Phylum, Habitat), names_to = 'MolClass', values_to = 'n') %>%
+  mutate(Phylum = str_remove(Phylum, "p__")) %>% 
   ggplot() +
   geom_tile(aes(y = Phylum,
                 x = MolClass,
@@ -382,17 +394,50 @@ hmp_class_q <- phylum_vs_metabolites_hmp_df %>%
         axis.title.x = element_blank())
 
 hmp_class_q
+
 ```
 
 # Joining Figure
 
 ```{r}
-supplementary_4 <- (((num_nodes_plot / num_edges_plot / num_modules_plot) |
-  ((phylum_vs_metabolites_plot / hmp_class_q) + plot_layout(heights = c(1, 1.5)))) +
-  plot_annotation(tag_levels = 'A')) &
-  theme(plot.tag = element_text(size = 12))
 
-ggsave('output/Supplementary_fig_4.png', supplementary_4, dpi = 300, width = 12, height = 12)
+des <- "
+AD
+AD
+BE
+BE
+CE
+CE
+"
+
+supplementary_4 <- num_nodes_plot + num_edges_plot + num_modules_plot +
+  phylum_vs_metabolites_plot + free(hmp_class_q) + 
+  plot_layout(design = des, widths = c(1, 1.5)) +
+  plot_annotation(tag_levels = 'A') &
+  theme(plot.tag = element_text(size = 12),
+        legend.text = element_text(size = 6),
+        legend.title = element_text(size = 6),
+        # legend.position = 'bottom',
+        legend.title.position = "top",
+        strip.text.x = element_text(size = 6),
+        strip.text.y = element_text(size = 6),
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title.y = element_text(size = 7),
+        legend.margin = margin(0,0,0,0),
+        legend.box.margin = margin(0,0,0,0),
+        legend.key.size = unit(.5, 'lines'))
+
+supplementary_4
+
+ggsave('output_updated/Supplementary_fig_4.png', supplementary_4, dpi = 300, 
+       width = 180, height = 185, units = "mm")
+
+
+ggsave('output_updated/Supplementary_fig_4.eps', supplementary_4, 
+       device = cairo_ps, fallback_resolution = 300,
+       width = 180, height = 185, units = 'mm')
+
 ```
 
 

@@ -142,14 +142,24 @@ correlogs <- map(niche_matrix, function(x){
                         nperm = 999)
 })
 
-png('output/Supplementary_8.png', 
-    res = 300, units = 'in', width = 8, height = 8)
-par(mfrow = c(3, 2))
+png('output_updated/Supplementary_fig_8.png', 
+    res = 300, units = 'mm', width = 180, height = 110)
+par(mfrow = c(3, 2), cex = 0.5)
 iwalk(correlogs, function(x, y){
   plot(x)
   title(main = y)
 })
 dev.off()
+
+cairo_ps('output_updated/Supplementary_fig_8.eps', 
+    fallback_resolution = 300, width = 7.08, height = 4.33)
+par(mfrow = c(3, 2), cex = 0.5)
+iwalk(correlogs, function(x, y){
+  plot(x)
+  title(main = y)
+})
+dev.off()
+
 
 ```
 

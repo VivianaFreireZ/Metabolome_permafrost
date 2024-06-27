@@ -146,18 +146,27 @@ supp2 <- metaT_annot_ready %>%
   scale_y_discrete(expand = c(0, 0)) +
   #scale_fill_distiller(palette = 'YlOrRd', direction = 1) +
   scale_fill_viridis_c(option = 'A', direction = -1)+
+  labs(fill = "TPM")+
   theme(axis.title = element_blank(),
         axis.text.x = element_blank(),
-        # axis.ticks.x = element_blank(),
-        #axis.text.y = element_blank(),
-        strip.text.y = element_text(angle = 0),
-        strip.text.x = element_text(angle = 90),
+        axis.text.y = element_text(size = 6),
+        strip.text.y = element_text(angle = 0, size = 6),
+        strip.text.x = element_text(angle = 90, size = 6),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())  
+        panel.grid.minor = element_blank(),
+        legend.position = "bottom",
+        legend.text = element_text(size = 6))  
 
 supp2
 
-ggsave('output/Supplementary_fig_2_filtered.png', supp2, dpi = 300, height = 6, width = 10)
+ggsave('output_updated/Supplementary_fig_2.png', supp2, dpi = 300, width = 180, units = "mm")
+
+ggsave('output_updated/Supplementary_fig_2.eps', supp2, 
+       device = cairo_ps, fallback_resolution = 300,
+       width = 180, height = 110, units = 'mm')
+
+
+
 ```
 
 
@@ -199,11 +208,13 @@ supp3 <- metaT_filtered %>%
   scale_fill_viridis_c(option = 'A', direction = -1)+
   theme(axis.title = element_blank(),
         axis.text.x = element_blank(),
-        strip.text.y = element_text(angle = 0),
-        strip.text.x = element_markdown(),
+        strip.text.x = element_markdown(size = 6, angle = 90),
+        axis.text.y = element_text(size = 6),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        legend.position = "bottom")  
+        legend.position = "bottom",
+        legend.title = element_text(size = 6),
+        legend.text = element_text(size = 6))  
 
 supp3
 
@@ -220,7 +231,7 @@ metaT_annot_cazy <- metaT_path_cazy %>%
     str_detect(cazy_id, 'GT') ~ 'Glycosyl\nTransferases',
     str_detect(cazy_id, 'PL') ~ 'Polysaccharide\nLyases',
     str_detect(cazy_id, 'CE') ~ 'Carbohydrate\nEsterases',
-    str_detect(cazy_id, 'AA') ~ 'Auxiliary\nActivities',
+    str_detect(cazy_id, 'AA') ~ 'Auxiliary Activities',
     str_detect(cazy_id, 'CBM') ~ 'Carbohydrate\nBinding Module'))
 
 supp3.1 <- metaT_annot_cazy %>% 
@@ -243,11 +254,14 @@ supp3.1 <- metaT_annot_cazy %>%
   scale_fill_viridis_c(option = 'A', direction = -1)+
   theme(axis.title = element_blank(),
         axis.text.x = element_blank(),
-        strip.text.y = element_text(angle = 0),
-        strip.text.x = element_markdown(),
+        axis.text.y = element_text(size = 6),
+        strip.text.y = element_text(angle = 0, size = 6),
+        strip.text.x = element_markdown(size = 6, angle = 90),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        legend.position = "bottom") 
+        legend.position = "bottom",
+        legend.title = element_text(size = 6),
+        legend.text = element_text(size = 6)) 
 
 supp3.1
 
@@ -259,7 +273,14 @@ final <- ggarrange(supp3, supp3.1, labels = 'AUTO')
 
 final
 
-ggsave('output/Supplementary_fig_3_filtered.png', final, dpi = 300, height = 14, width = 20)
+ggsave('output_updated/Supplementary_fig_3.png', final, dpi = 300, width = 180, height = 150, units = "mm")
+
+
+
+ggsave('output_updated/Supplementary_fig_3.eps',final, 
+       device = cairo_ps, fallback_resolution = 300,
+       width = 180, height = 150, units = 'mm')
+
 
 ```
 

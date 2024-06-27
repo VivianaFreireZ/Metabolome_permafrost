@@ -66,7 +66,12 @@ bar_plot <- bar_table_t %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         plot.title = element_text(hjust = 0.5)) +
   facet_wrap(~ El_comp)+
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        plot.title = element_blank(),
+        strip.text = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        legend.margin = margin(0, 0, 0, 0),
+        legend.spacing.y = unit(0, "mm"))
 
 
 bar_plot
@@ -102,15 +107,15 @@ stat_table <- df %>%
          El_comp != 'CHSP',
          El_comp != 'CHS') %>% 
   group_by(El_comp) %>% 
-  wilcox_test(perc_counts ~ Habitat) %>% 
-  add_y_position()
+  wilcox_test(perc_counts ~ Habitat, p.adjust.method = "bonferroni") %>% 
+  add_y_position() 
 
-stat_table[1, 'y.position'] <- 30
-stat_table[10, 'y.position'] <- 1
-stat_table[16, 'y.position'] <- 3.5
-stat_table[17, 'y.position'] <- 4
+stat_table[1, 'y.position'] <- 27.5
+stat_table[10, 'y.position'] <- .875
+stat_table[16, 'y.position'] <- 3
+stat_table[17, 'y.position'] <- 3.5
 stat_table[19, 'y.position'] <- 15
-stat_table[20, 'y.position'] <- 20
+stat_table[20, 'y.position'] <- 17.5
 
 box_plot <- df %>% 
   filter(El_comp != "CHP", 
@@ -123,14 +128,22 @@ box_plot <- df %>%
   geom_boxplot(aes(x = Habitat, y = perc_counts, fill = Habitat)) +
   facet_wrap(~El_comp, scales = 'free_y')+
   scale_fill_manual(values = my_colors) +
-  stat_pvalue_manual(data = stat_table, hide.ns = TRUE)+
+  scale_y_continuous(expand = expansion(mult = 0.2)) +
+  stat_pvalue_manual(data = stat_table, 
+                     label = "p.adj", 
+                     hide.ns = TRUE,
+                     size = 2)+
   labs(title = "Relative richness of elemental compositions", 
        y = "Relative richness (%)") +
   theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5),
+  theme(plot.title = element_blank(),
         axis.title.x = element_blank(),
         axis.text.x = element_blank(),
-        legend.position = "bottom")
+        legend.position = "bottom",
+        strip.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        legend.margin = margin(0, 0, 0, 0),
+        legend.spacing.y = unit(0, "mm"))
 
 box_plot
 
@@ -174,7 +187,8 @@ el_plots <- imap(rep_df, function(x, y){
     group_by(cluster, Habitat) %>% 
     count(bs2_class) %>% 
     mutate(bs2_class = factor(bs2_class, levels = classes),
-                              perc = n / sum(n)) %>% 
+                              perc = n / sum(n),
+           cluster = paste0('Cluster ', cluster)) %>% 
     ggplot() +
     geom_col(aes(x = cluster,
                  y = perc,
@@ -187,32 +201,42 @@ el_plots <- imap(rep_df, function(x, y){
     theme_bw() +
     theme(axis.title = element_blank(),
           axis.text.x = element_text(angle = 45, hjust = 1),
-          plot.title = element_text(face = 'bold', hjust = 0.5))
+          plot.title = element_text(face = 'bold', hjust = 0.5, size = 10),
+          legend.position = 'none')
 })
 
-# Ordination plots
+
+legend <- tibble(Class = names(class_colors)) %>% 
+  ggplot() +
+  geom_tile(aes(x = Class,
+                y = 1,
+                fill = Class)) +
+  scale_fill_manual(values = class_colors) +
+  theme_bw() +
+  theme(legend.position = 'bottom',
+        legend.text = element_text(size = 6),
+        legend.title = element_text(size = 7))
+
+e_legend <- get_legend(legend)
+
+des <- "
+AAABBB
+CCDDEE
+FFFFFF
+"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-final <- (bar_plot + box_plot) / (el_plots$Palsa + el_plots$Bog + el_plots$Fen + 
-                                    plot_layout(guides = 'collect')) +
-  
-  plot_annotation(tag_levels = list(c('A', 'B', 'C'))) &
-  theme(legend.position = 'bottom')
+final <- bar_plot + box_plot + el_plots$Palsa + el_plots$Bog + el_plots$Fen + e_legend +
+  plot_layout(heights = c(5,2,.7), design = des) +
+  plot_annotation(tag_levels = list(c('A', 'B', 'C'))) & 
+  theme(legend.text = element_text(size = 6),
+        legend.title = element_text(size = 7))
 
 final
 
-ggsave("output/Supplementary_fig_1.png", final, dpi = 300, height = 12, width = 15)
+ggsave("output_updated/Supplementary_fig_1.png", final, dpi = 300, height = 210, width = 180, units = "mm")
 
+
+ggsave('output_updated/Supplementary_fig_1.eps', final, 
+       device = cairo_ps, fallback_resolution = 300,
+       width = 180, height = 210, units = 'mm')

@@ -226,15 +226,23 @@ legend_p <- tibble(Taxa = names(phyl_colors),
                    y = 1,
                    fill = rho)) +
   scale_color_manual(values = phyl_colors) +
+  scale_shape_manual(values = c('Met. Cluster' = 15, 
+                                'Bacteria' = 16, 
+                                'Env. Factor' = 17)) +
   scale_fill_distiller(palette = 'RdBu', limits = c(-0.7, 0.7)) +
-  guides(color = guide_legend(nrow = 2),
-         shape = guide_legend(nrow = 2)) +
+  guides(color = guide_legend(nrow = 2, direction = 'vertical'),
+         shape = guide_legend(nrow = 2, direction = 'vertical'),
+         fill = guide_colorbar(direction = 'horizontal', title.position = 'top')) +
   labs(fill = "Spearman's\nrho") +
   theme_bw() +
   theme(legend.position = 'bottom',
         legend.text = element_text(size = 5),
         legend.title = element_text(size = 7),
-        legend.key.size = unit(.75, 'line'))
+        legend.key.size = unit(.75, 'line'),
+        legend.spacing.x = unit(0, 'line'),
+        legend.spacing.y = unit(0, 'line'))
+
+legend_p
 
 legend <- get_legend(legend_p)
 
@@ -254,17 +262,23 @@ gg_network <- imap(network_graph, function(x, y){
                     size = 2) +
     scale_color_manual(values = phyl_colors, drop = FALSE) +
     #guides(color = guide_legend(override.aes = list(color = phyl_colors))) +
-    scale_shape_manual(values = c('Met. Cluster' = 15, 'Bacteria' = 16, 'Env. Factor' = 17),
+    scale_shape_manual(values = c('Met. Cluster' = 15, 
+                                  'Bacteria' = 16, 
+                                  'Env. Factor' = 17),
                        drop = FALSE) +
     new_scale_color() +
     geom_node_point(aes(color = Other_nodes,
                         shape = type),
                     size = 3, show.legend = FALSE) +
-    guides(shape = guide_legend(override.aes = list(color = c('black', 'black', 'forestgreen'),
-                                                    fill = c('black', 'black', 'forestgreen')))) +
-    scale_color_manual(values = c('Met. Cluster' = 'black', 'Env. Factor' = 'forestgreen'),
+    guides(shape = guide_legend(override.aes = list(color = c('black', 
+                                                              'black', 'forestgreen'),
+                                                    fill = c('black', 
+                                                             'black', 'forestgreen')))) +
+    scale_color_manual(values = c('Met. Cluster' = 'black', 
+                                  'Env. Factor' = 'forestgreen'),
                        na.value = 'transparent', drop = FALSE) +
-    geom_node_label(aes(label = label), hjust = 0.5, nudge_y = -0.5, repel = TRUE, size = 1.8) +
+    geom_node_label(aes(label = label), hjust = 0.5, nudge_y = -0.5, 
+                    repel = TRUE, size = 1.8) +
     labs(title = y,
          shape = 'Node\nType',
          edge_color = "Spearman's\nrho") +
@@ -274,8 +288,7 @@ gg_network <- imap(network_graph, function(x, y){
           plot.title = element_text(face = 'bold', hjust = 0.5, size = 8))
 })
 
-gg_network_final <- (gg_network$Palsa | gg_network$Bog | gg_network$Fen ) +
-  plot_layout(guides = 'collect')
+gg_network_final <- gg_network$Palsa + gg_network$Bog + gg_network$Fen 
 
 
 ```
@@ -294,12 +307,17 @@ rep_df_final <- reduce(rep_df, rbind) %>%
   mutate(cluster = paste0('Cluster', cluster),
          Habitat = factor(Habitat, levels = c('Palsa', 'Bog', 'Fen')))
 
+
 idx_stat <- rep_df_final %>% 
   select(Habitat, cluster, NOSC, AI_Mod, DBE_O) %>% 
   pivot_longer(!c(Habitat, cluster), names_to = 'index', values_to = 'value') %>%
   group_by(Habitat, index) %>% 
-  wilcox_test(value ~ cluster) %>% 
-  add_xy_position(scales = 'free', step.increase = .5)
+  wilcox_test(value ~ cluster, p.adjust.method = "bonferroni") %>% 
+  add_xy_position(scales = 'free', step.increase = 1) %>% 
+  mutate(p.adj = paste0("P = ", p.adj))
+
+
+
 ```
 
 ## Plotting
@@ -311,16 +329,18 @@ idx_plot <- rep_df_final %>%
   ggplot(aes(x = cluster,
              y = value,
              fill = Habitat)) +
-  geom_violin(alpha = 0.5) +
-  geom_boxplot(width = 0.1) +
+  geom_violin(alpha = 0.5, linewidth = .1) +
+  geom_boxplot(width = 0.1, linewidth = .1, outlier.size = .2) +
   facet_grid(cols = vars(Habitat),
              rows = vars(index),
              scales = 'free',
              space = 'free_x') +
   scale_fill_manual(values = habitat_colors) +
-  stat_pvalue_manual(data = idx_stat, label = 'p.adj.signif', hide.ns = TRUE) +
+  stat_pvalue_manual(data = idx_stat, label = 'p.adj', hide.ns = TRUE,
+                     size = 1.5) +
+  scale_y_continuous(expand = expansion(mult = 0.1)) +
   theme_bw() +
-  theme(strip.text.y = element_text(angle = 0, size = 6),
+  theme(strip.text.y = element_text(size = 6),
         axis.title.x = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
         axis.text.y = element_text(size = 5),
@@ -329,6 +349,7 @@ idx_plot <- rep_df_final %>%
         legend.position = 'none')
 
 idx_plot
+
 ```
 
 # Feature contribution barplot
@@ -345,7 +366,8 @@ contrib_plot <- bnti_counts_df %>%
   geom_col(aes(x = cluster,
                y = perc,
                fill = Direction),
-           color = 'black') +
+           color = 'black',
+           linewidth = .1) +
   facet_grid(cols = vars(Habitat),
              scales = 'free',
              space = 'free_x') +
@@ -353,6 +375,7 @@ contrib_plot <- bnti_counts_df %>%
        y = 'Percentage [%]') +
   scale_y_continuous(labels = ~ scales::percent(.x, scale = 1)) +
   scale_fill_manual(values = contrib_colors) +
+  guides(fill = guide_legend(title.position = 'top')) +
   theme_bw() +
   theme(axis.title.x = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
@@ -362,7 +385,9 @@ contrib_plot <- bnti_counts_df %>%
         legend.title = element_text(size = 7),
         strip.text = element_text(size = 6),
         legend.position = 'bottom',
-        legend.key.size = unit(.5, 'line'))
+        legend.key.size = unit(.5, 'line'),
+        legend.margin = margin(0, 0, 0, 0),
+        legend.box.margin = margin(0, 0, 0, 0))
 
 contrib_plot
 ```
@@ -378,7 +403,8 @@ class_plot <- rep_df_final %>%
   geom_col(aes(x = cluster,
                y = perc,
                fill = El_comp),
-           color = 'black') +
+           color = 'black',
+           linewidth = .1) +
   facet_grid(cols = vars(Habitat),
              scales = 'free',
              space = 'free_x') +
@@ -386,6 +412,7 @@ class_plot <- rep_df_final %>%
        y = 'Percentage [%]') +
   scale_y_continuous(labels = scales::percent) +
   scale_fill_manual(values = ggpubr::get_palette(palette = 'Set3', 10)) +
+  guides(fill = guide_legend(title.position = 'top')) +
   theme_bw() +
   theme(axis.title.x = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
@@ -395,7 +422,9 @@ class_plot <- rep_df_final %>%
         legend.title = element_text(size = 7),
         strip.text = element_text(size = 6), 
         legend.position = 'bottom',
-        legend.key.size = unit(.5, 'line'))
+        legend.key.size = unit(.5, 'line'),
+        legend.margin = margin(0, 0, 0, 0),
+        legend.box.margin = margin(0, 0, 0, 0))
 
 
 class_plot
@@ -404,16 +433,29 @@ class_plot
 # Finalizing Figure 2
 
 ```{r}
-figure_2 <- (gg_network_final/ legend / (idx_plot | (contrib_plot / class_plot))) +
-  plot_layout(heights = c(5, 1, 6)) +
+
+des <- "
+AABBCC
+DDDDDD
+EEEFFF
+EEEGGG
+"
+
+figure_2 <-  gg_network_final + legend + free(idx_plot) + 
+  free(contrib_plot) + free(class_plot) +
+  plot_layout(heights = c(5, 1.5, 3, 3), design = des) +
   plot_annotation(tag_levels = list(c('A', '', '', '', 'B', 'C', 'D'))) &
   theme(plot.tag = element_text(size = 7))
 
 
-#figure_2
+figure_2
 
-ggsave('output/Figure_2.png', figure_2, dpi = 300,  width = 215, 
-       height = 180, units = 'mm')
+ggsave('output_updated/Figure_2.png', figure_2, dpi = 300,  width = 180, 
+       height = 186, units = 'mm')
+
+ggsave('output_updated/Figure_2.eps', figure_2, 
+       device = cairo_ps, fallback_resolution = 300,
+       width = 180, height = 186, units = 'mm')
 ```
 
 
